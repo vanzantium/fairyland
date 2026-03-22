@@ -1,0 +1,17 @@
+{
+  "species": "nettle",
+  "common_name": "Stinging Nettle",
+  "latin": "Urtica dioica",
+  "biome": "meadow",
+  "habitat": "Disturbed ground, hedgerows, woodland edges. Nitrogen-rich soils.",
+  "noticing_prompts": [
+    "A plant that protects itself. Did you notice where it grows?",
+    "Look at the tiny hairs on the stem — what direction do they point?",
+    "What's growing right next to it?"
+  ],
+  "safety": {
+    "edible": false,
+    "toxic": false,
+    "notes": "Stinging hairs cause irritation. Look, don't touch bare-handed."
+  }
+}
