@@ -5,6 +5,13 @@ INPUT -> (t) interpret -> (.) hold -> narrow -> (T) structure -> respond -> loop
 
 The engine transitions through five states:
   HANDSHAKE -> ANCHOR -> HOLD -> RENDER -> RITUAL -> (loop)
+
+Now integrated with:
+  - Oscillator (phi-driven mode transitions)
+  - Rich sensing (rhythm, repetition, trajectory)
+  - Micro-healing interventions
+  - Bias drift tracking
+  - Mode effects on pressure/decay/reveal
 """
 
 from __future__ import annotations
@@ -13,6 +20,10 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
+from .drift import DriftNudge, DriftTracker
+from .healing import Intervention, select_intervention
+from .oscillator import ModeEffect, advance_oscillator, mode_effects
+from .sensing import TextSignals, extract_signals
 from .state import (
     BreathState,
     KernelState,
@@ -27,27 +38,8 @@ from .state import (
 
 
 # ---------------------------------------------------------------------------
-# Signal interpretation
+# Signal interpretation (kept for biome — tone moved to sensing.py)
 # ---------------------------------------------------------------------------
-
-# Simple keyword-based tone detection (no ML, just presence heuristics)
-_TONE_SIGNALS = {
-    "curious": ["what", "how", "why", "tell me", "wonder", "?"],
-    "confused": ["don't understand", "huh", "what do you mean", "confused", "lost"],
-    "excited": ["wow", "cool", "amazing", "awesome", "!"],
-    "cautious": ["careful", "sting", "hurt", "sharp", "danger", "scary"],
-    "calm": ["nice", "pretty", "peaceful", "soft", "gentle"],
-}
-
-
-def _detect_tone(text: str) -> Optional[str]:
-    text_lower = text.lower()
-    scores = {}
-    for tone, keywords in _TONE_SIGNALS.items():
-        scores[tone] = sum(1 for kw in keywords if kw in text_lower)
-    best = max(scores, key=scores.get)
-    return best if scores[best] > 0 else None
-
 
 def _detect_biome_hint(text: str) -> Optional[str]:
     text_lower = text.lower()
@@ -65,22 +57,58 @@ def _detect_biome_hint(text: str) -> Optional[str]:
     return None
 
 
-def _compute_pressure(text: str, state: RuntimeState) -> float:
-    """Estimate kernel pressure from input signals."""
-    pressure = state.kernel.pressure
-    length_factor = min(len(text) / 200.0, 0.3)
-    exclamation_factor = min(text.count("!") * 0.1, 0.3)
-    question_factor = min(text.count("?") * 0.05, 0.15)
-    repetition = 0.0
-    if state.context.t.last_input and text.strip() == state.context.t.last_input.strip():
-        repetition = 0.3
+def _compute_pressure(text: str, state: RuntimeState, signals: TextSignals,
+                      pressure_baseline: float = 0.0) -> float:
+    """
+    Compute kernel pressure with feedback loops.
 
-    raw = pressure * 0.4 + length_factor + exclamation_factor + question_factor + repetition
+    Integrates:
+      - Previous pressure momentum
+      - Text signals (rhythm, repetition, trajectory)
+      - Coherence-pressure coupling
+      - Oscillator mode damping
+      - Historical pressure baseline from tattoos
+    """
+    k = state.kernel
+    osc_effect = mode_effects(state.oscillator.mode)
+
+    # base momentum — previous pressure decays
+    momentum = k.pressure * 0.35
+
+    # text-derived pressure
+    length_factor = min(len(text) / 200.0, 0.25)
+    exclamation_factor = min(text.count("!") * 0.08, 0.25)
+    question_factor = min(text.count("?") * 0.04, 0.12)
+
+    # rhythm: staccato raises pressure, flowing lowers it
+    rhythm_factor = {"staccato": 0.08, "mixed": 0.0, "flowing": -0.05}.get(signals.rhythm, 0.0)
+
+    # repetition amplifies pressure (looping = stress)
+    repetition_factor = signals.repetition_score * 0.25
+
+    # trajectory: escalating adds pressure, settling removes it
+    trajectory_factor = {
+        "escalating": 0.12, "flat": 0.0, "settling": -0.08
+    }.get(signals.emotional_direction, 0.0)
+
+    # coherence-pressure coupling: low coherence amplifies pressure
+    coherence_coupling = (1.0 - k.coherence) * 0.1
+
+    # historical baseline from tattoos
+    baseline = max(-0.1, min(0.1, pressure_baseline))
+
+    raw = (momentum + length_factor + exclamation_factor + question_factor +
+           rhythm_factor + repetition_factor + trajectory_factor +
+           coherence_coupling + baseline)
+
+    # apply oscillator mode damping
+    raw *= osc_effect.pressure_damping
+
     return max(0.0, min(1.0, raw))
 
 
 # ---------------------------------------------------------------------------
-# Spiral state transitions
+# Spiral output
 # ---------------------------------------------------------------------------
 
 @dataclass
@@ -93,6 +121,10 @@ class SpiralOutput:
     pip_active: bool = False
     ritual_question: Optional[str] = None
     weather: Optional[Dict[str, str]] = None
+    intervention: Optional[str] = None
+    drift_nudge: Optional[str] = None
+    oscillator_mode: Optional[str] = None
+    signals: Optional[Dict] = None
 
 
 _RITUAL_QUESTIONS = [
@@ -112,12 +144,17 @@ class SpiralEngine:
     The core Fairyland engine.
 
     Runs the five-state spiral loop and manages the three-register
-    context ((t), (.), (T)).
+    context ((t), (.), (T)). Integrates oscillator, sensing, healing,
+    and drift tracking.
     """
 
-    def __init__(self, state: Optional[RuntimeState] = None):
+    def __init__(self, state: Optional[RuntimeState] = None,
+                 pressure_baseline: float = 0.0):
         self.state = state or RuntimeState()
         self._ritual_idx = 0
+        self._drift = DriftTracker()
+        self._pressure_baseline = pressure_baseline
+        self._last_signals: Optional[TextSignals] = None
 
     # -- public API ---------------------------------------------------------
 
@@ -125,19 +162,61 @@ class SpiralEngine:
         """Process one user input through the spiral."""
         self.state.tick += 1
 
-        # (t) — micro observation
-        self._sense(text)
+        # (t) — extract rich signals
+        signals = extract_signals(text, self.state.history)
+        self._last_signals = signals
+        self._sense(text, signals)
 
-        # pressure / breath update
-        self._update_kernel(text)
+        # advance oscillator
+        self.state.oscillator = advance_oscillator(
+            self.state.oscillator, self.state.kernel, self.state.tick
+        )
+
+        # pressure / kernel / breath update
+        self._update_kernel(text, signals)
         self._update_breath()
+
+        # check for drift nudge
+        drift_nudge = self._drift.update(
+            text,
+            repetition_score=signals.repetition_score,
+            tick=self.state.tick,
+            tone=signals.tone,
+        )
 
         # overdrive check — Pip interrupt
         if self.state.breath == BreathState.OVERDRIVE:
-            return self._pip_interrupt()
+            out = self._pip_interrupt()
+            out.oscillator_mode = self.state.oscillator.mode.name
+            return out
 
         # state machine transition
-        return self._advance(text)
+        output = self._advance(text)
+
+        # attach oscillator mode
+        output.oscillator_mode = self.state.oscillator.mode.name
+
+        # check for micro-healing intervention
+        intervention = select_intervention(
+            self.state.kernel, self.state.oscillator.mode
+        )
+        if intervention:
+            output.intervention = intervention.artifact
+
+        # attach drift nudge (replaces output text if parasocial)
+        if drift_nudge:
+            output.drift_nudge = drift_nudge.text
+
+        # attach signal summary for transparency
+        output.signals = {
+            "tone": signals.tone,
+            "rhythm": signals.rhythm,
+            "repetition": round(signals.repetition_score, 2),
+            "trajectory": signals.emotional_direction,
+            "density": round(signals.word_density, 2),
+        }
+
+        return output
 
     def set_mode(self, mode: SessionMode):
         self.state.context.T.mode = mode
@@ -150,27 +229,73 @@ class SpiralEngine:
         flow = "exploratory" if k.temperature > 0.5 else "repetitive"
         return {"rhythm": rhythm, "tension": tension, "flow": flow}
 
+    def get_drift_hud(self) -> dict:
+        """Return bias drift HUD."""
+        return self._drift.get_hud()
+
+    @property
+    def last_signals(self) -> Optional[TextSignals]:
+        return self._last_signals
+
     # -- (t) sense ----------------------------------------------------------
 
-    def _sense(self, text: str):
+    def _sense(self, text: str, signals: TextSignals):
         t = self.state.context.t
         t.last_input = text
-        t.tone = _detect_tone(text)
+        t.tone = signals.tone
+        t.mood = signals.emotional_direction
 
     # -- kernel / breath ----------------------------------------------------
 
-    def _update_kernel(self, text: str):
+    def _update_kernel(self, text: str, signals: TextSignals):
         k = self.state.kernel
-        k.pressure = _compute_pressure(text, self.state)
-        # coherence decays toward pressure
-        k.coherence = k.coherence * 0.8 + (1.0 - k.pressure) * 0.2
-        # groove settles
-        k.groove = k.groove * 0.9 + 0.1 * (1.0 - abs(k.pressure - 0.3))
-        # temperature rises with novelty, falls with repetition
-        if self.state.context.t.last_input == text:
-            k.temperature = max(0.0, k.temperature - 0.1)
+        osc_effect = mode_effects(self.state.oscillator.mode)
+
+        # pressure with full feedback
+        k.pressure = _compute_pressure(text, self.state, signals, self._pressure_baseline)
+
+        # coherence decays toward pressure, modulated by oscillator
+        coherence_target = 1.0 - k.pressure
+        k.coherence = k.coherence * 0.8 + coherence_target * 0.2
+
+        # groove settles — good rhythm when pressure is moderate
+        groove_target = 1.0 - abs(k.pressure - 0.3)
+        k.groove = k.groove * 0.85 + groove_target * 0.15
+
+        # temperature: novelty raises, repetition lowers
+        if signals.repetition_score > 0.5:
+            k.temperature = max(0.0, k.temperature - 0.08)
+        elif signals.word_density > 0.7:
+            k.temperature = min(1.0, k.temperature + 0.06)
         else:
-            k.temperature = min(1.0, k.temperature + 0.05)
+            k.temperature = min(1.0, k.temperature + 0.03)
+
+        # stress accumulates with sustained pressure, recovers in DWELL
+        if k.pressure > 0.5:
+            k.stress = min(1.0, k.stress + 0.03)
+        else:
+            k.stress = max(0.0, k.stress - 0.02 * (1.0 + osc_effect.decay_rate))
+
+        # reserve depletes under load, recovers when calm
+        if k.pressure > 0.6:
+            k.reserve = max(0.0, k.reserve - 0.02)
+        else:
+            k.reserve = min(1.0, k.reserve + 0.01)
+
+        # recovery tracks how well the system bounces back
+        k.recovery = k.recovery * 0.9 + (1.0 - k.stress) * 0.1
+
+        # debt accumulates when reserve is low
+        if k.reserve < 0.3:
+            k.debt = min(1.0, k.debt + 0.02)
+        else:
+            k.debt = max(0.0, k.debt - 0.01)
+
+        # loss tracks when coherence drops sharply
+        if k.coherence < 0.4:
+            k.loss = min(1.0, k.loss + 0.03)
+        else:
+            k.loss = max(0.0, k.loss - 0.02)
 
     def _update_breath(self):
         p = self.state.kernel.pressure
@@ -212,14 +337,12 @@ class SpiralEngine:
         elif s == SpiralState.RITUAL:
             return self._do_ritual(text)
 
-        # fallback — should never reach here
         return self._do_handshake(text)
 
     def _do_handshake(self, text: str) -> SpiralOutput:
         """Name + mode selection."""
         text_lower = text.lower().strip()
 
-        # detect mode from input
         if any(w in text_lower for w in ["kid", "child", "young"]):
             self.set_mode(SessionMode.KID)
         elif any(w in text_lower for w in ["code", "coder", "dev", "developer"]):
@@ -252,7 +375,6 @@ class SpiralEngine:
                 breath=self.state.breath.value,
             )
 
-        # no biome detected — enter HOLD
         self.state.context.pip.active = True
         self.state.context.pip.question = "Can you describe what's around you?"
         self.state.spiral = SpiralState.HOLD
@@ -293,15 +415,20 @@ class SpiralEngine:
 
         mode = self.state.context.T.mode
         tone = self.state.context.t.tone
+        osc_effect = mode_effects(self.state.oscillator.mode)
+
+        # in DWELL mode, responses are shorter and more reflective
+        dwell_prefix = "" if not self.state.oscillator.in_dwell else "Slowly now. "
 
         if mode == SessionMode.KID:
-            # mirror energy, never identify
             if tone == "cautious":
                 reply = "A plant that protects itself. Did you notice where it grows?"
             elif tone == "curious":
                 reply = "Something caught your eye. What shape are the leaves?"
             elif tone == "excited":
                 reply = "You found something! What does it feel like — rough, smooth, waxy?"
+            elif tone == "withdrawn":
+                reply = "It's here. You're here. That's enough."
             else:
                 reply = "Look closely. What do you notice first?"
         elif mode == SessionMode.CODER:
@@ -311,12 +438,16 @@ class SpiralEngine:
                 reply = "Something with defences. Notice the habitat — that's the first clue."
             elif tone == "curious":
                 reply = "Good eye. Leaf shape and arrangement tell you a lot."
+            elif tone == "withdrawn":
+                reply = "No rush. Just notice what's closest."
+            elif tone == "confused":
+                reply = "Stay with what you see. The shape. The texture. Names come later."
             else:
                 reply = "Observe the growth pattern. Where does it sit relative to light and water?"
 
         self.state.spiral = SpiralState.RITUAL
         return SpiralOutput(
-            text=reply,
+            text=dwell_prefix + reply,
             state_name=SpiralState.RITUAL.value,
             breath=self.state.breath.value,
         )
@@ -333,7 +464,6 @@ class SpiralEngine:
         if self.state.breath in (BreathState.CALM, BreathState.FLOW):
             anchor = _ANCHORS[self._ritual_idx % len(_ANCHORS)]
 
-        # loop back to RENDER (not HANDSHAKE — session persists)
         self.state.spiral = SpiralState.RENDER
 
         return SpiralOutput(

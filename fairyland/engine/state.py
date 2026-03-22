@@ -166,6 +166,12 @@ class RuntimeState:
             "biome": self.context.T.biome,
             "coherence": round(self.kernel.coherence, 2),
             "pressure": round(self.kernel.pressure, 2),
+            "stress": round(self.kernel.stress, 2),
+            "reserve": round(self.kernel.reserve, 2),
+            "groove": round(self.kernel.groove, 2),
+            "temperature": round(self.kernel.temperature, 2),
+            "oscillator_mode": self.oscillator.mode.name,
+            "oscillator_phi": round(self.oscillator.phi, 3),
             "tick": self.tick,
             "pip_active": self.context.pip.active,
         }

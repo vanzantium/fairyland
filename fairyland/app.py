@@ -16,6 +16,7 @@ from flask import Flask, jsonify, request
 
 from fairyland.beacon.mesh import BeaconState, broadcast, handshake
 from fairyland.breath.protocol import BreathProtocol
+from fairyland.engine.shuffle import ProperShuffle, Track
 from fairyland.engine.spiral import SpiralEngine
 from fairyland.engine.state import RuntimeState, SessionMode
 from fairyland.memory.engine import MemoryEngine
@@ -34,10 +35,13 @@ DATA_DIR = Path(__file__).parent / "data"
 
 def _get_or_create_session(sid: str) -> dict:
     if sid not in _sessions:
+        memory = MemoryEngine(tattoo_dir=TATTOO_DIR)
+        engine = SpiralEngine(pressure_baseline=memory.get_pressure_baseline())
         _sessions[sid] = {
-            "engine": SpiralEngine(),
+            "engine": engine,
             "breath": BreathProtocol(),
-            "memory": MemoryEngine(tattoo_dir=TATTOO_DIR),
+            "memory": memory,
+            "shuffle": None,  # created on demand
         }
     return _sessions[sid]
 
@@ -93,21 +97,25 @@ def step():
     # breath pulse
     pulse = breath_proto.force_pulse(engine.state.breath)
 
-    # friction logging
+    # friction logging with richer signals
     k = engine.state.kernel
     hesitation = "NONE"
     if engine.state.context.pip.active:
         hesitation = "STRONG"
     elif k.pressure > 0.5:
         hesitation = "MILD"
+
+    signals = engine.last_signals
     memory.log(
         pressure=k.pressure,
         hesitation=hesitation,
         summary=text[:80],
         tick=engine.state.tick,
+        tone=signals.tone if signals else None,
+        rhythm=signals.rhythm if signals else None,
     )
 
-    return jsonify({
+    response = {
         "text": output.text,
         "state": output.state_name,
         "breath": {
@@ -121,7 +129,19 @@ def step():
         "ritual_question": output.ritual_question,
         "weather": output.weather,
         "snapshot": engine.state.snapshot(),
-    })
+    }
+
+    # include new features when present
+    if output.intervention:
+        response["intervention"] = output.intervention
+    if output.drift_nudge:
+        response["drift_nudge"] = output.drift_nudge
+    if output.oscillator_mode:
+        response["oscillator_mode"] = output.oscillator_mode
+    if output.signals:
+        response["signals"] = output.signals
+
+    return jsonify(response)
 
 
 @app.route("/weather", methods=["GET"])
@@ -134,6 +154,16 @@ def weather():
     return jsonify({"weather": engine.get_weather()})
 
 
+@app.route("/drift", methods=["GET"])
+def drift():
+    """Bias drift HUD — tracks parasocial risk, echo, narrowing."""
+    sid = request.args.get("session_id", "")
+    if sid not in _sessions:
+        return jsonify({"error": "unknown session"}), 404
+    engine: SpiralEngine = _sessions[sid]["engine"]
+    return jsonify({"drift": engine.get_drift_hud()})
+
+
 @app.route("/burn", methods=["POST"])
 def burn():
     """Burn session memory. Only tattoos survive."""
@@ -143,7 +173,6 @@ def burn():
         return jsonify({"error": "unknown session"}), 404
     session = _sessions[sid]
     session["memory"].burn_session()
-    # remove session from memory
     del _sessions[sid]
     return jsonify({"burned": True})
 
@@ -161,6 +190,7 @@ def dwell():
         "tattoo": tattoo,
         "scar_signature": memory.state.scar_signature,
         "total_tattoos": len(memory.state.code_tattoos),
+        "patterns": memory.state.patterns,
     })
 
 
@@ -192,6 +222,57 @@ def handshake_route():
     remote = BeaconState(**body.get("remote", {}))
     decision = handshake(local, remote)
     return jsonify({"decision": decision.name})
+
+
+@app.route("/shuffle/start", methods=["POST"])
+def shuffle_start():
+    """Start a Proper Shuffle session with a playlist."""
+    body = request.get_json(force=True)
+    sid = body.get("session_id", "")
+    tracks_data = body.get("tracks", [])
+
+    if sid not in _sessions:
+        return jsonify({"error": "unknown session"}), 404
+
+    tracks = [Track(
+        id=t.get("id", str(i)),
+        title=t.get("title", f"Track {i}"),
+        duration_s=t.get("duration_s", 180.0),
+        mood=t.get("mood", "neutral"),
+    ) for i, t in enumerate(tracks_data)]
+
+    shuffle = ProperShuffle(tracks)
+    _sessions[sid]["shuffle"] = shuffle
+    return jsonify({"started": True, "track_count": len(tracks)})
+
+
+@app.route("/shuffle/next", methods=["POST"])
+def shuffle_next():
+    """Get the next track/silence/exit from the shuffle."""
+    body = request.get_json(force=True)
+    sid = body.get("session_id", "")
+
+    if sid not in _sessions:
+        return jsonify({"error": "unknown session"}), 404
+
+    shuffle: ProperShuffle = _sessions[sid].get("shuffle")
+    if not shuffle:
+        return jsonify({"error": "no shuffle session"}), 400
+
+    out = shuffle.next()
+    result = {
+        "silence": out.silence,
+        "anchor_cue": out.anchor_cue,
+        "exit_cue": out.exit_cue,
+    }
+    if out.track:
+        result["track"] = {
+            "id": out.track.id,
+            "title": out.track.title,
+            "duration_s": out.track.duration_s,
+            "mood": out.track.mood,
+        }
+    return jsonify(result)
 
 
 @app.route("/plant/<species>")
