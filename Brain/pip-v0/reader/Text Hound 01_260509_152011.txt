@@ -12,7 +12,7 @@ For books, source means “the book said this.”
 For your text archive, source means:
 this artifact existed at this date, from this model/persona/chat/system.
 That chain matters because your files are part original thought, part AI reflection, part LS compression, part cross-model remix. So the custody labels become:
-[USER SOURCE] Original Taylor note / lyric / idea. [MODEL SOURCE] Output from ChatGPT / DeepSeek / Kimi / etc. [COMPRESSOR OUTPUT] LS compression, capsule, micro seed. [USER EDIT] Your later correction, merge, or reframing. [DAEMON INFERENCE] Text Hound’s current interpretation. 
+[USER SOURCE] Original user note / lyric / idea. [MODEL SOURCE] Output from ChatGPT / DeepSeek / Kimi / etc. [COMPRESSOR OUTPUT] LS compression, capsule, micro seed. [USER EDIT] Your later correction, merge, or reframing. [DAEMON INFERENCE] Text Hound’s current interpretation. 
 That prevents soup.
 Why this is powerful
 Your archive can answer questions like:

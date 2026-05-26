@@ -1,10 +1,10 @@
 {
   "generated_at": "2026-04-28T05:48:42+00:00",
   "mode": "phone_optimizer",
-  "latest_usage": "C:\\Users\\taylo\\Documents\\brain\\pip-v0\\imports\\s25_usage_last_7_days.json",
-  "latest_dream": "C:\\Users\\taylo\\Documents\\brain\\pip-v0\\imports\\s25_latest_dream.json",
-  "latest_proposal": "C:\\Users\\taylo\\Documents\\brain\\pip-v0\\imports\\s25_proposal_card.json",
-  "memory": "C:\\Users\\taylo\\Documents\\brain\\pip-v0\\imports\\s25_memory.json",
+  "latest_usage": "imports/s25_usage_last_7_days.json",
+  "latest_dream": "imports/s25_latest_dream.json",
+  "latest_proposal": "imports/s25_proposal_card.json",
+  "memory": "imports/s25_memory.json",
   "validation": {
     "ok": true,
     "event_count": 139,
@@ -120,7 +120,7 @@
   },
   "imported": true,
   "source_name": "dashboard_manual_summary.csv",
-  "archive_path": "C:\\Users\\taylo\\Documents\\brain\\pip-v0\\imports\\phone_upload_20260428_054842.json",
+  "archive_path": "imports/phone_upload_20260428_054842.json",
   "manual_summary": {
     "source_name": "dashboard_manual_summary.csv",
     "app_count": 6,

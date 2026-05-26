@@ -180,7 +180,7 @@ Start the phone-friendly local control panel:
 python pip_control_panel.py --host 0.0.0.0 --port 8787
 ```
 
-The server prints a laptop URL and a same-Wi-Fi phone URL. Pip remains draft-only: it reads only approved Garden Spiders paths and writes generated artifacts only under `C:\Users\taylo\Documents\brain\Garden Spiders\project\docs\pip-drafts`.
+The server prints a laptop URL and a same-Wi-Fi phone URL. Pip remains draft-only: it reads only approved workspace paths and writes generated artifacts only under the configured drafts directory.
 The dashboard can run scan, run ambient, schedule the next wake, import pasted S25 usage JSON, record phone/build proposal feedback, and approve or deny pending permission requests.
 
 ## Cross-Platform Notes

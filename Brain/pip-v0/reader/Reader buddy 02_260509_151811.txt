@@ -25,7 +25,7 @@ Reader memory is alive.
 Your interpretation changes.
 Capsules are the bridge.
 They compress what the encounter did to you.
-That prevents the daemon from blending “book text” and “Taylor’s myth digestion” into one soup. Soup is for goblins. We’re building a fox library.
+That prevents the daemon from blending “book text” and “the user’s myth digestion” into one soup. Soup is for goblins. We’re building a fox library.
 The source custody layer is the killer feature
 Every answer should label its material like this:
 [SOURCE] Book: Night Watch Location: Chapter 3 / page unknown / highlight export Excerpt: "short quote..." [YOUR NOTE] Imported from Readwise, 2026-05-09 [DAEMON INFERENCE] This appears to support your “magic as bureaucracy” frame. [CONFIDENCE] Grounded: high Reason: direct highlight + nearby source excerpt 
