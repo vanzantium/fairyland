@@ -1,0 +1,44 @@
+{
+  "name": "codex",
+  "app_name": "Codex",
+  "window_title": "Codex",
+  "description": "Codex developer shell. local codebase implementation and review teammate.",
+  "shell_type": "developer_tool",
+  "safety_mode": "approval_required_for_ui_handoff",
+  "aliases": [
+    "codex",
+    "code",
+    "openai codex"
+  ],
+  "capabilities": [
+    "Repo Mapping",
+    "Safe Patching",
+    "Test Loop",
+    "Handoff Review"
+  ],
+  "handoff_guidance": [
+    "Use for precise local edits, test loops, reviews, and handoff bundles.",
+    "Keep tasks scoped to a repository or approved workspace.",
+    "Never ask Codex to mutate files outside an approved workspace without permission."
+  ],
+  "macros": {
+    "focus_only": [
+      {
+        "action": "focus_window"
+      }
+    ],
+    "submit_task": [
+      {
+        "action": "focus_window"
+      },
+      {
+        "action": "type_text",
+        "source": "task_input"
+      },
+      {
+        "action": "press_key",
+        "key": "enter"
+      }
+    ]
+  }
+}

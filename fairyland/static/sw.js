@@ -40,7 +40,8 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/shuffle") ||
     url.pathname.startsWith("/drift") ||
     url.pathname.startsWith("/handshake") ||
-    url.pathname.startsWith("/plant")
+    url.pathname.startsWith("/plant") ||
+    url.pathname.startsWith("/bridge")
   ) {
     event.respondWith(fetch(event.request));
     return;

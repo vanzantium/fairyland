@@ -16,6 +16,18 @@ from flask import Flask, jsonify, request, render_template
 
 from fairyland.beacon.mesh import BeaconState, broadcast, handshake
 from fairyland.breath.protocol import BreathProtocol
+from fairyland.bridge import (
+    GovernorState,
+    PipThermal,
+    extract_session_friction,
+    friction_to_pip_events,
+    governor_to_reveal_speed,
+    load_governor_state,
+    load_pip_thermal,
+    load_tiered_memory,
+    save_tiered_memory,
+    seed_kernel_from_pip,
+)
 from fairyland.engine.shuffle import ProperShuffle, Track
 from fairyland.engine.spiral import SpiralEngine
 from fairyland.engine.state import RuntimeState, SessionMode
@@ -30,10 +42,11 @@ app = Flask(__name__)
 _sessions: dict[str, dict] = {}
 
 TATTOO_DIR = os.environ.get("FAIRYLAND_TATTOO_DIR", None)
+PIP_DATA_DIR = os.environ.get("FAIRYLAND_PIP_DIR", None)
 DATA_DIR = Path(__file__).parent / "data"
 
 
-def _get_or_create_session(sid: str) -> dict:
+def _get_or_create_session(sid: str, pip_seed: bool = True) -> dict:
     if sid not in _sessions:
         memory = MemoryEngine(tattoo_dir=TATTOO_DIR)
         engine = SpiralEngine(pressure_baseline=memory.get_pressure_baseline())
@@ -41,9 +54,23 @@ def _get_or_create_session(sid: str) -> dict:
             "engine": engine,
             "breath": BreathProtocol(),
             "memory": memory,
-            "shuffle": None,  # created on demand
+            "shuffle": None,
         }
+        if pip_seed and PIP_DATA_DIR:
+            _seed_from_pip(engine, PIP_DATA_DIR)
     return _sessions[sid]
+
+
+def _seed_from_pip(engine: SpiralEngine, pip_dir: str) -> None:
+    """Seed a new session's kernel from PipV0's latest thermal state."""
+    p = Path(pip_dir)
+    thermal_path = p / "s25_latest_dream.json"
+    thermal = load_pip_thermal(str(thermal_path))
+    if not thermal:
+        return
+    tiered_path = p / "tiered_memory.json"
+    tiered = load_tiered_memory(str(tiered_path))
+    seed_kernel_from_pip(engine.state.kernel, thermal, tiered)
 
 
 # ---------------------------------------------------------------------------
@@ -288,6 +315,81 @@ def plant_data(species: str):
         return jsonify({"error": "unknown species"}), 404
     data = json.loads(plant_file.read_text())
     return jsonify(data)
+
+
+# ---------------------------------------------------------------------------
+# Bridge endpoints — PipV0 <-> Fairyland
+# ---------------------------------------------------------------------------
+
+@app.route("/bridge/friction", methods=["GET"])
+def bridge_friction():
+    """Extract friction summary from a session for PipV0's weekly cycle."""
+    sid = request.args.get("session_id", "")
+    if sid not in _sessions:
+        return jsonify({"error": "unknown session"}), 404
+    session = _sessions[sid]
+    summary = extract_session_friction(sid, session["engine"], session["memory"])
+    events = friction_to_pip_events(summary)
+    return jsonify({
+        "session_id": summary.session_id,
+        "tick_count": summary.tick_count,
+        "avg_pressure": round(summary.avg_pressure, 3),
+        "max_pressure": round(summary.max_pressure, 3),
+        "dominant_tone": summary.dominant_tone,
+        "hesitation_count": summary.hesitation_count,
+        "drift_scores": summary.drift_scores,
+        "pip_events": events,
+    })
+
+
+@app.route("/bridge/governor", methods=["GET"])
+def bridge_governor():
+    """Get Token Governor state and its reveal speed mapping."""
+    if not PIP_DATA_DIR:
+        return jsonify({"error": "PIP_DATA_DIR not configured"}), 400
+    gov_path = str(Path(PIP_DATA_DIR) / "token_governor_state.json")
+    gov = load_governor_state(gov_path)
+    return jsonify({
+        "mode": gov.mode,
+        "daily_budget": gov.daily_budget,
+        "daily_used": gov.daily_used,
+        "remaining_ratio": round(gov.budget_remaining_ratio, 3),
+        "reveal_speed": governor_to_reveal_speed(gov),
+    })
+
+
+@app.route("/bridge/thermal", methods=["GET"])
+def bridge_thermal():
+    """Get PipV0's latest thermal state."""
+    if not PIP_DATA_DIR:
+        return jsonify({"error": "PIP_DATA_DIR not configured"}), 400
+    thermal_path = str(Path(PIP_DATA_DIR) / "s25_latest_dream.json")
+    thermal = load_pip_thermal(thermal_path)
+    if not thermal:
+        return jsonify({"error": "no thermal data"}), 404
+    return jsonify({
+        "coherence": round(thermal.coherence, 3),
+        "pressure": round(thermal.pressure, 3),
+        "drift": round(thermal.drift, 3),
+        "groove": round(thermal.groove, 3),
+        "integration_debt": round(thermal.integration_debt, 3),
+        "scar": round(thermal.scar, 3),
+    })
+
+
+@app.route("/bridge/status", methods=["GET"])
+def bridge_status():
+    """Bridge health — is PipV0 connected?"""
+    connected = bool(PIP_DATA_DIR and Path(PIP_DATA_DIR).exists())
+    thermal_exists = connected and (Path(PIP_DATA_DIR) / "s25_latest_dream.json").exists()
+    gov_exists = connected and (Path(PIP_DATA_DIR) / "token_governor_state.json").exists()
+    return jsonify({
+        "pip_connected": connected,
+        "pip_dir": PIP_DATA_DIR,
+        "thermal_available": thermal_exists,
+        "governor_available": gov_exists,
+        "active_sessions": len(_sessions),
+    })
 
 
 # ---------------------------------------------------------------------------

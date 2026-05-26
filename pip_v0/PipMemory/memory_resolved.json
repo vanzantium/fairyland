@@ -1,0 +1,122 @@
+{
+  "cycle_count": 3,
+  "tattoo_history": {
+    "attention_drain::TikTok": 3,
+    "battery_mismatch::Gmail": 3,
+    "battery_mismatch::Messages": 3,
+    "battery_mismatch::TikTok": 3
+  },
+  "skin_weights": {
+    "attention_drain::TikTok": -0.2,
+    "battery_mismatch::Gmail": 0.138,
+    "battery_mismatch::Messages": 0.138,
+    "battery_mismatch::TikTok": 0.138
+  },
+  "fur_reactions": [
+    {
+      "app_name": "TikTok",
+      "kind": "attention_drain",
+      "effect": "resolved",
+      "strength": 0.245
+    }
+  ],
+  "cooldowns": {
+    "attention_drain::TikTok": 0.538
+  },
+  "compost_log": [
+    {
+      "cycle": 1,
+      "proposal_key": "attention_drain::TikTok",
+      "reason": "user_resolved"
+    }
+  ],
+  "proposal_history": [
+    {
+      "cycle": 1,
+      "proposal": "Hide TikTok from the home screen",
+      "app_name": "TikTok",
+      "kind": "attention_drain",
+      "proposal_key": "attention_drain::TikTok",
+      "score": 0.935,
+      "status": "resolved",
+      "top_candidates": [
+        {
+          "app_name": "TikTok",
+          "kind": "attention_drain",
+          "score": 0.935,
+          "proposal_key": "attention_drain::TikTok"
+        },
+        {
+          "app_name": "TikTok",
+          "kind": "battery_mismatch",
+          "score": 0.805,
+          "proposal_key": "battery_mismatch::TikTok"
+        },
+        {
+          "app_name": "Messages",
+          "kind": "battery_mismatch",
+          "score": 0.656,
+          "proposal_key": "battery_mismatch::Messages"
+        }
+      ]
+    },
+    {
+      "cycle": 2,
+      "proposal": "Restrict background activity for TikTok",
+      "app_name": "TikTok",
+      "kind": "battery_mismatch",
+      "proposal_key": "battery_mismatch::TikTok",
+      "score": 0.755,
+      "status": "proposed",
+      "top_candidates": [
+        {
+          "app_name": "TikTok",
+          "kind": "battery_mismatch",
+          "score": 0.755,
+          "proposal_key": "battery_mismatch::TikTok"
+        },
+        {
+          "app_name": "Messages",
+          "kind": "battery_mismatch",
+          "score": 0.656,
+          "proposal_key": "battery_mismatch::Messages"
+        },
+        {
+          "app_name": "Gmail",
+          "kind": "battery_mismatch",
+          "score": 0.54,
+          "proposal_key": "battery_mismatch::Gmail"
+        }
+      ]
+    },
+    {
+      "cycle": 3,
+      "proposal": "Restrict background activity for TikTok",
+      "app_name": "TikTok",
+      "kind": "battery_mismatch",
+      "proposal_key": "battery_mismatch::TikTok",
+      "score": 0.709,
+      "status": "proposed",
+      "top_candidates": [
+        {
+          "app_name": "TikTok",
+          "kind": "battery_mismatch",
+          "score": 0.709,
+          "proposal_key": "battery_mismatch::TikTok"
+        },
+        {
+          "app_name": "Messages",
+          "kind": "battery_mismatch",
+          "score": 0.66,
+          "proposal_key": "battery_mismatch::Messages"
+        },
+        {
+          "app_name": "Gmail",
+          "kind": "battery_mismatch",
+          "score": 0.544,
+          "proposal_key": "battery_mismatch::Gmail"
+        }
+      ]
+    }
+  ]
+}

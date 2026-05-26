@@ -1,0 +1,49 @@
+{
+  "cycle_count": 1,
+  "tattoo_history": {
+    "attention_drain::TikTok": 1,
+    "battery_mismatch::Gmail": 1,
+    "battery_mismatch::Messages": 1,
+    "battery_mismatch::TikTok": 1
+  },
+  "skin_weights": {
+    "attention_drain::TikTok": 0.05,
+    "battery_mismatch::Gmail": 0.05,
+    "battery_mismatch::Messages": 0.05,
+    "battery_mismatch::TikTok": 0.05
+  },
+  "fur_reactions": [],
+  "cooldowns": {},
+  "compost_log": [],
+  "proposal_history": [
+    {
+      "cycle": 1,
+      "proposal": "Hide TikTok from the home screen",
+      "app_name": "TikTok",
+      "kind": "attention_drain",
+      "proposal_key": "attention_drain::TikTok",
+      "score": 0.935,
+      "status": "proposed",
+      "top_candidates": [
+        {
+          "app_name": "TikTok",
+          "kind": "attention_drain",
+          "score": 0.935,
+          "proposal_key": "attention_drain::TikTok"
+        },
+        {
+          "app_name": "TikTok",
+          "kind": "battery_mismatch",
+          "score": 0.805,
+          "proposal_key": "battery_mismatch::TikTok"
+        },
+        {
+          "app_name": "Messages",
+          "kind": "battery_mismatch",
+          "score": 0.656,
+          "proposal_key": "battery_mismatch::Messages"
+        }
+      ]
+    }
+  ]
+}

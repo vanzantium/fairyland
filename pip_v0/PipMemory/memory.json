@@ -1,0 +1,100 @@
+{
+  "cycle_count": 3,
+  "tattoo_history": {
+    "attention_drain::TikTok": 3,
+    "battery_mismatch::Gmail": 3,
+    "battery_mismatch::Messages": 3,
+    "battery_mismatch::TikTok": 3
+  },
+  "skin_weights": {
+    "attention_drain::TikTok": 0.435,
+    "battery_mismatch::Gmail": 0.138,
+    "battery_mismatch::Messages": 0.138,
+    "battery_mismatch::TikTok": 0.138
+  },
+  "fur_reactions": [
+    {
+      "app_name": "TikTok",
+      "kind": "attention_drain",
+      "effect": "avoid_repeat",
+      "strength": 0.171
+    }
+  ],
+  "proposal_history": [
+    {
+      "cycle": 1,
+      "proposal": "Hide TikTok from the home screen",
+      "app_name": "TikTok",
+      "kind": "attention_drain",
+      "score": 0.935,
+      "status": "rejected",
+      "top_candidates": [
+        {
+          "app_name": "TikTok",
+          "kind": "attention_drain",
+          "score": 0.935
+        },
+        {
+          "app_name": "TikTok",
+          "kind": "battery_mismatch",
+          "score": 0.805
+        },
+        {
+          "app_name": "Messages",
+          "kind": "battery_mismatch",
+          "score": 0.656
+        }
+      ]
+    },
+    {
+      "cycle": 2,
+      "proposal": "Restrict background activity for TikTok",
+      "app_name": "TikTok",
+      "kind": "battery_mismatch",
+      "score": 0.755,
+      "status": "proposed",
+      "top_candidates": [
+        {
+          "app_name": "TikTok",
+          "kind": "battery_mismatch",
+          "score": 0.755
+        },
+        {
+          "app_name": "Messages",
+          "kind": "battery_mismatch",
+          "score": 0.656
+        },
+        {
+          "app_name": "Gmail",
+          "kind": "battery_mismatch",
+          "score": 0.54
+        }
+      ]
+    },
+    {
+      "cycle": 3,
+      "proposal": "Restrict background activity for TikTok",
+      "app_name": "TikTok",
+      "kind": "battery_mismatch",
+      "score": 0.709,
+      "status": "proposed",
+      "top_candidates": [
+        {
+          "app_name": "TikTok",
+          "kind": "battery_mismatch",
+          "score": 0.709
+        },
+        {
+          "app_name": "Messages",
+          "kind": "battery_mismatch",
+          "score": 0.66
+        },
+        {
+          "app_name": "Gmail",
+          "kind": "battery_mismatch",
+          "score": 0.544
+        }
+      ]
+    }
+  ]
+}
