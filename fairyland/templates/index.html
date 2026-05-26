@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Fairyland</title>
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- breath circle -->
+    <div id="breath-ring" class="breath calm">
+      <span id="breath-icon">○</span>
+    </div>
+
+    <!-- main content area -->
+    <div id="content">
+      <div id="messages"></div>
+
+      <!-- intervention / nudge overlay -->
+      <div id="overlay" class="hidden"></div>
+
+      <!-- anchor word -->
+      <div id="anchor" class="hidden"></div>
+    </div>
+
+    <!-- input -->
+    <div id="input-area">
+      <input type="text" id="user-input" placeholder="…" autocomplete="off" autofocus>
+    </div>
+
+    <!-- mode selector (only visible during handshake) -->
+    <div id="mode-select" class="hidden">
+      <button data-mode="KID">Kid</button>
+      <button data-mode="ADULT">Adult</button>
+      <button data-mode="CODER">Coder</button>
+    </div>
+
+    <!-- pip silence overlay -->
+    <div id="pip-overlay" class="hidden">
+      <span class="pip-dot">(.) …</span>
+    </div>
+
+    <!-- oscillator + weather HUD (minimal, bottom) -->
+    <div id="hud">
+      <span id="hud-mode"></span>
+      <span id="hud-weather"></span>
+    </div>
+
+    <!-- signals debug (hidden by default, toggle with triple-tap on HUD) -->
+    <div id="debug" class="hidden"></div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

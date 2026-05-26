@@ -1,8 +1,43 @@
 fairyland/
   app.py
-  requirements.txt
-  SAFETY.md
+  __init__.py
+  engine/
+    spiral.py
+    state.py
+    drift.py
+    oscillator.py
+    sensing.py
+    healing.py
+    shuffle.py
+  memory/
+    engine.py
+    tiered.py
+  beacon/
+    mesh.py
+  breath/
+    protocol.py
+  bridge.py
   data/
     plants/
       bracken.plant.json
       bracken.media.json
+  templates/
+    index.html
+tests/
+  test_app.py
+  test_beacon.py
+  test_breath.py
+  test_bridge.py
+  test_bridge_api.py
+  test_drift.py
+  test_engine.py
+  test_healing.py
+  test_memory.py
+  test_oscillator.py
+  test_sensing.py
+  test_shuffle.py
+  test_tiered_memory.py
+README.md
+SAFETY.md
+LICENSE
+requirements.txt

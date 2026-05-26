@@ -1,0 +1,257 @@
+/* Fairyland — aesthetic, minimal, breath-first */
+
+:root {
+  --bg: #0a0a0a;
+  --fg: #d4d0c8;
+  --dim: #555;
+  --accent: #7a9e7e;
+  --warn: #c9a96e;
+  --edge: #b56b5a;
+  --calm-pulse: #4a6a4e;
+  --flow-pulse: #6a8a6e;
+  --edge-pulse: #a86a5a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1rem;
+  position: relative;
+}
+
+/* Breath ring */
+#breath-ring {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  transition: all 1.5s ease-in-out;
+  font-size: 24px;
+}
+
+#breath-ring.calm {
+  border: 2px solid var(--calm-pulse);
+  animation: breathe-calm 6.5s infinite ease-in-out;
+}
+
+#breath-ring.flow {
+  border: 2px solid var(--flow-pulse);
+  animation: breathe-flow 4.5s infinite ease-in-out;
+}
+
+#breath-ring.edge {
+  border: 2px solid var(--edge-pulse);
+  animation: breathe-edge 2.5s infinite ease-in-out;
+}
+
+#breath-ring.overdrive {
+  border: 2px solid var(--dim);
+  animation: none;
+  opacity: 0.3;
+}
+
+@keyframes breathe-calm {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes breathe-flow {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+@keyframes breathe-edge {
+  0%, 50% { transform: scale(1); opacity: 0.8; }
+  25% { transform: scale(1.05); opacity: 1; }
+  75% { transform: scale(1.05); opacity: 1; }
+}
+
+/* Content area */
+#content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 1rem;
+  scrollbar-width: none;
+}
+
+#content::-webkit-scrollbar { display: none; }
+
+#messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.msg {
+  max-width: 90%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  line-height: 1.5;
+  animation: fadein 0.4s ease-in;
+}
+
+.msg.user {
+  align-self: flex-end;
+  color: var(--dim);
+  font-size: 0.85rem;
+}
+
+.msg.system {
+  align-self: flex-start;
+  color: var(--fg);
+}
+
+.msg.intervention {
+  align-self: flex-start;
+  color: var(--accent);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.msg.nudge {
+  align-self: flex-start;
+  color: var(--warn);
+  font-size: 0.85rem;
+}
+
+.msg.ritual {
+  align-self: flex-start;
+  color: var(--accent);
+}
+
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Anchor */
+#anchor {
+  text-align: center;
+  font-size: 1.4rem;
+  color: var(--accent);
+  padding: 1rem;
+  letter-spacing: 0.3em;
+  animation: fadein 0.8s ease-in;
+}
+
+#anchor.hidden { display: none; }
+
+/* Input */
+#input-area {
+  padding: 0.5rem 0;
+}
+
+#user-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--dim);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+#user-input:focus {
+  border-bottom-color: var(--accent);
+}
+
+/* Mode selector */
+#mode-select {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+#mode-select.hidden { display: none; }
+
+#mode-select button {
+  background: transparent;
+  border: 1px solid var(--dim);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#mode-select button:hover,
+#mode-select button:active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Pip silence overlay */
+#pip-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+#pip-overlay.hidden { display: none; }
+
+.pip-dot {
+  font-size: 2rem;
+  color: var(--dim);
+  animation: pip-pulse 3s ease-in-out;
+}
+
+@keyframes pip-pulse {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* HUD */
+#hud {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--dim);
+  padding: 0.3rem 0;
+  user-select: none;
+}
+
+/* Debug */
+#debug {
+  font-size: 0.65rem;
+  color: var(--dim);
+  padding: 0.3rem;
+  border-top: 1px solid #222;
+  white-space: pre-wrap;
+}
+
+#debug.hidden { display: none; }
+
+/* Overlay for interventions */
+#overlay.hidden { display: none; }

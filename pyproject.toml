@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fairyland"
+version = "0.1.0"
+description = "A non-extractive digital ecology"
+requires-python = ">=3.10"
+dependencies = [
+    "Flask>=3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+fairyland = "fairyland.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["fairyland*"]
+
+[tool.setuptools.package-data]
+fairyland = [
+    "templates/*.html",
+    "static/*",
+    "data/**/*.json",
+]

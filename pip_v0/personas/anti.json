@@ -1,0 +1,44 @@
+{
+  "name": "anti",
+  "app_name": "Antigravity",
+  "window_title": "Antigravity",
+  "description": "Antigravity developer shell. agentic build/test exploration shell for supervised development.",
+  "shell_type": "developer_tool",
+  "safety_mode": "approval_required_for_ui_handoff",
+  "aliases": [
+    "anti",
+    "antigravity",
+    "google antigravity"
+  ],
+  "capabilities": [
+    "Agent Tasking",
+    "UI Validation",
+    "Build Iteration",
+    "Agent Observation"
+  ],
+  "handoff_guidance": [
+    "Use for bounded agentic exploration, UI validation, and build iteration.",
+    "Give it narrow tasks with visible outputs and a stop condition.",
+    "Review its changes before Pip records them as trusted evidence."
+  ],
+  "macros": {
+    "focus_only": [
+      {
+        "action": "focus_window"
+      }
+    ],
+    "submit_task": [
+      {
+        "action": "focus_window"
+      },
+      {
+        "action": "type_text",
+        "source": "task_input"
+      },
+      {
+        "action": "press_key",
+        "key": "enter"
+      }
+    ]
+  }
+}

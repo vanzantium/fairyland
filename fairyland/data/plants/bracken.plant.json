@@ -1,0 +1,17 @@
+{
+  "species": "bracken",
+  "common_name": "Bracken Fern",
+  "latin": "Pteridium aquilinum",
+  "biome": "forest",
+  "habitat": "Woodland edges, heaths, hillsides. Prefers acid soils.",
+  "noticing_prompts": [
+    "Look at how the fronds unfurl — like a fist slowly opening.",
+    "Notice where bracken stops and other plants begin.",
+    "How tall is it compared to you?"
+  ],
+  "safety": {
+    "edible": false,
+    "toxic": true,
+    "notes": "Contains ptaquiloside. Look, don't taste."
+  }
+}

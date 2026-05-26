@@ -1,0 +1,55 @@
+{
+  "cycle_count": 1,
+  "tattoo_history": {
+    "notification_drag::Calendar": 1,
+    "notification_drag::Gmail": 1,
+    "notification_drag::Messages": 1,
+    "attention_drain::Calendar": 1,
+    "battery_mismatch::Messages": 1,
+    "battery_mismatch::Gmail": 1,
+    "notification_drag::YouTube": 1
+  },
+  "skin_weights": {
+    "notification_drag::Calendar": 0.05,
+    "notification_drag::Gmail": 0.05,
+    "notification_drag::Messages": 0.05,
+    "attention_drain::Calendar": 0.05,
+    "battery_mismatch::Messages": 0.05,
+    "battery_mismatch::Gmail": 0.05,
+    "notification_drag::YouTube": 0.05
+  },
+  "fur_reactions": [],
+  "cooldowns": {},
+  "compost_log": [],
+  "proposal_history": [
+    {
+      "cycle": 1,
+      "proposal": "Silence non-essential Calendar notifications",
+      "app_name": "Calendar",
+      "kind": "notification_drag",
+      "proposal_key": "notification_drag::Calendar",
+      "score": 0.928,
+      "status": "proposed",
+      "top_candidates": [
+        {
+          "app_name": "Calendar",
+          "kind": "notification_drag",
+          "score": 0.928,
+          "proposal_key": "notification_drag::Calendar"
+        },
+        {
+          "app_name": "Gmail",
+          "kind": "notification_drag",
+          "score": 0.915,
+          "proposal_key": "notification_drag::Gmail"
+        },
+        {
+          "app_name": "Messages",
+          "kind": "notification_drag",
+          "score": 0.913,
+          "proposal_key": "notification_drag::Messages"
+        }
+      ]
+    }
+  ]
+}

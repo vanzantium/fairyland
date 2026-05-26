@@ -1,0 +1,11 @@
+{
+  "species": "bracken",
+  "images": [
+    {"label": "unfurling frond", "season": "spring"},
+    {"label": "mature stand", "season": "summer"},
+    {"label": "golden dieback", "season": "autumn"}
+  ],
+  "sounds": [
+    {"label": "wind through bracken", "duration_s": 12}
+  ]
+}

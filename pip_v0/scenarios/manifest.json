@@ -1,0 +1,32 @@
+{
+  "balanced_week": {
+    "file": "balanced_week.json",
+    "seed": 109,
+    "description": "Mixed normal usage with one mild noisy app.",
+    "event_count": 247
+  },
+  "doomscroll_week": {
+    "file": "doomscroll_week.json",
+    "seed": 110,
+    "description": "Heavy short-session scrolling with high launch counts.",
+    "event_count": 352
+  },
+  "notification_hell_week": {
+    "file": "notification_hell_week.json",
+    "seed": 111,
+    "description": "Interrupt-heavy week with lots of ignored notifications.",
+    "event_count": 314
+  },
+  "battery_bleed_week": {
+    "file": "battery_bleed_week.json",
+    "seed": 112,
+    "description": "Apps burning battery in short or fragmented sessions.",
+    "event_count": 307
+  },
+  "healthy_week": {
+    "file": "healthy_week.json",
+    "seed": 113,
+    "description": "Lower-noise week with longer useful sessions and fewer interruptions.",
+    "event_count": 122
+  }
+}
