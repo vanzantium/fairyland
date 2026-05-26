@@ -7,3 +7,7 @@ dist/
 build/
 .env
 *.tattoo
+tattoos/
+instance/
+*.sqlite
+*.db
