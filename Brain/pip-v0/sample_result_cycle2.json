@@ -1,0 +1,231 @@
+{
+  "proposal_card": {
+    "proposal": "Hide TikTok from the home screen",
+    "evidence": "Opened 45 times this week, with 45 sessions under 45 seconds. Total time: 20.8 minutes. High frequency, low yield.",
+    "rationale_tags": [
+      "low_engagement",
+      "high_frequency",
+      "attention_drain"
+    ],
+    "score": 0.935,
+    "source_kind": "attention_drain"
+  },
+  "thermal_state": {
+    "coherence": 0.614,
+    "pressure": 0.249,
+    "drift": 0.125,
+    "groove": 0.375,
+    "integration_debt": 0.5,
+    "scar": 0.625
+  },
+  "tattoos": [
+    {
+      "kind": "attention_drain",
+      "app_name": "TikTok",
+      "summary": "TikTok is high-frequency, low-value noise.",
+      "confidence": 0.9,
+      "recurrence": 2
+    },
+    {
+      "kind": "battery_mismatch",
+      "app_name": "Gmail",
+      "summary": "Gmail consumes noticeable battery for very short sessions.",
+      "confidence": 0.7,
+      "recurrence": 2
+    },
+    {
+      "kind": "battery_mismatch",
+      "app_name": "Messages",
+      "summary": "Messages consumes noticeable battery for very short sessions.",
+      "confidence": 0.7,
+      "recurrence": 2
+    },
+    {
+      "kind": "battery_mismatch",
+      "app_name": "TikTok",
+      "summary": "TikTok consumes noticeable battery for very short sessions.",
+      "confidence": 0.7,
+      "recurrence": 2
+    }
+  ],
+  "proposal_candidates": [
+    {
+      "kind": "attention_drain",
+      "app_name": "TikTok",
+      "score": 0.935,
+      "evidence": "Opened 45 times this week, with 45 sessions under 45 seconds. Total time: 20.8 minutes. High frequency, low yield.",
+      "rationale_tags": [
+        "low_engagement",
+        "high_frequency",
+        "attention_drain"
+      ],
+      "proposal": "Hide TikTok from the home screen"
+    },
+    {
+      "kind": "battery_mismatch",
+      "app_name": "TikTok",
+      "score": 0.805,
+      "evidence": "TikTok consumed 92 battery points across short sessions averaging 27.8 seconds.",
+      "rationale_tags": [
+        "battery_cost",
+        "low_signal",
+        "resource_reduction"
+      ],
+      "proposal": "Restrict background activity for TikTok"
+    },
+    {
+      "kind": "battery_mismatch",
+      "app_name": "Messages",
+      "score": 0.706,
+      "evidence": "Messages consumed 35 battery points across short sessions averaging 62.5 seconds.",
+      "rationale_tags": [
+        "battery_cost",
+        "low_signal",
+        "resource_reduction"
+      ],
+      "proposal": "Restrict background activity for Messages"
+    },
+    {
+      "kind": "battery_mismatch",
+      "app_name": "Gmail",
+      "score": 0.59,
+      "evidence": "Gmail consumed 28 battery points across short sessions averaging 72.0 seconds.",
+      "rationale_tags": [
+        "battery_cost",
+        "low_signal",
+        "resource_reduction"
+      ],
+      "proposal": "Restrict background activity for Gmail"
+    }
+  ],
+  "memory": {
+    "cycle_count": 2,
+    "tracked_tattoos": 4,
+    "recent_proposals": [
+      {
+        "cycle": 1,
+        "proposal": "Hide TikTok from the home screen",
+        "app_name": "TikTok",
+        "kind": "attention_drain",
+        "score": 0.935,
+        "status": "proposed",
+        "top_candidates": [
+          {
+            "app_name": "TikTok",
+            "kind": "attention_drain",
+            "score": 0.935
+          },
+          {
+            "app_name": "TikTok",
+            "kind": "battery_mismatch",
+            "score": 0.805
+          },
+          {
+            "app_name": "Messages",
+            "kind": "battery_mismatch",
+            "score": 0.656
+          }
+        ]
+      },
+      {
+        "cycle": 2,
+        "proposal": "Hide TikTok from the home screen",
+        "app_name": "TikTok",
+        "kind": "attention_drain",
+        "score": 0.935,
+        "status": "proposed",
+        "top_candidates": [
+          {
+            "app_name": "TikTok",
+            "kind": "attention_drain",
+            "score": 0.935
+          },
+          {
+            "app_name": "TikTok",
+            "kind": "battery_mismatch",
+            "score": 0.805
+          },
+          {
+            "app_name": "Messages",
+            "kind": "battery_mismatch",
+            "score": 0.706
+          }
+        ]
+      }
+    ]
+  },
+  "apps": {
+    "Calendar": {
+      "launches": 9,
+      "average_duration_seconds": 36.6,
+      "short_session_ratio": 0.556,
+      "low_signal_ratio": 0.667,
+      "notifications_received": 2,
+      "notifications_dismissed_unread": 0,
+      "battery_delta_total": 5
+    },
+    "Chrome": {
+      "launches": 38,
+      "average_duration_seconds": 143.5,
+      "short_session_ratio": 0.0,
+      "low_signal_ratio": 0.105,
+      "notifications_received": 15,
+      "notifications_dismissed_unread": 6,
+      "battery_delta_total": 69
+    },
+    "Gmail": {
+      "launches": 30,
+      "average_duration_seconds": 72.0,
+      "short_session_ratio": 0.167,
+      "low_signal_ratio": 0.3,
+      "notifications_received": 85,
+      "notifications_dismissed_unread": 41,
+      "battery_delta_total": 28
+    },
+    "Maps": {
+      "launches": 6,
+      "average_duration_seconds": 912.5,
+      "short_session_ratio": 0.0,
+      "low_signal_ratio": 0.0,
+      "notifications_received": 0,
+      "notifications_dismissed_unread": 0,
+      "battery_delta_total": 24
+    },
+    "Messages": {
+      "launches": 77,
+      "average_duration_seconds": 62.5,
+      "short_session_ratio": 0.195,
+      "low_signal_ratio": 0.403,
+      "notifications_received": 550,
+      "notifications_dismissed_unread": 277,
+      "battery_delta_total": 35
+    },
+    "Spotify": {
+      "launches": 16,
+      "average_duration_seconds": 2251.5,
+      "short_session_ratio": 0.0,
+      "low_signal_ratio": 0.0,
+      "notifications_received": 11,
+      "notifications_dismissed_unread": 5,
+      "battery_delta_total": 37
+    },
+    "TikTok": {
+      "launches": 45,
+      "average_duration_seconds": 27.8,
+      "short_session_ratio": 0.556,
+      "low_signal_ratio": 1.0,
+      "notifications_received": 233,
+      "notifications_dismissed_unread": 106,
+      "battery_delta_total": 92
+    },
+    "YouTube": {
+      "launches": 26,
+      "average_duration_seconds": 859.7,
+      "short_session_ratio": 0.0,
+      "low_signal_ratio": 0.0,
+      "notifications_received": 31,
+      "notifications_dismissed_unread": 11,
+      "battery_delta_total": 101
+    }
+  }
+}

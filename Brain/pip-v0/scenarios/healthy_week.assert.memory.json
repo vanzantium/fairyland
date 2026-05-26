@@ -1,0 +1,20 @@
+{
+  "cycle_count": 1,
+  "tattoo_history": {},
+  "skin_weights": {},
+  "fur_reactions": [],
+  "cooldowns": {},
+  "compost_log": [],
+  "proposal_history": [
+    {
+      "cycle": 1,
+      "proposal": "No change this cycle",
+      "app_name": null,
+      "kind": "none",
+      "proposal_key": null,
+      "score": 0.0,
+      "status": "proposed",
+      "top_candidates": []
+    }
+  ]
+}

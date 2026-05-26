@@ -1,0 +1,183 @@
+{
+  "proposal_card": {
+    "proposal": "Silence non-essential Gmail notifications",
+    "evidence": "Gmail generated 20 notifications this week and 14 were dismissed unread.",
+    "rationale_tags": [
+      "notification_pressure",
+      "dismissed_unread",
+      "attention_drain"
+    ],
+    "score": 0.504,
+    "source_kind": "notification_drag"
+  },
+  "thermal_state": {
+    "coherence": 0.795,
+    "pressure": 0.155,
+    "drift": 0.0,
+    "groove": 0.6,
+    "integration_debt": 0.4,
+    "scar": 0.333
+  },
+  "tattoos": [
+    {
+      "kind": "notification_drag",
+      "app_name": "Gmail",
+      "summary": "Gmail sends many notifications that are mostly dismissed unread.",
+      "confidence": 0.73,
+      "recurrence": 2
+    }
+  ],
+  "proposal_candidates": [
+    {
+      "kind": "notification_drag",
+      "app_name": "Gmail",
+      "score": 0.504,
+      "evidence": "Gmail generated 20 notifications this week and 14 were dismissed unread.",
+      "rationale_tags": [
+        "notification_pressure",
+        "dismissed_unread",
+        "attention_drain"
+      ],
+      "proposal": "Silence non-essential Gmail notifications"
+    }
+  ],
+  "decision_trace": {
+    "loops_run": 1,
+    "halted_reason": "stable_margin",
+    "top_margin": 0.504,
+    "notes": []
+  },
+  "memory": {
+    "cycle_count": 8,
+    "tracked_tattoos": 1,
+    "skin_weights": {
+      "notification_drag::Gmail": 0.096
+    },
+    "fur_reactions": [],
+    "cooldowns": {},
+    "compost_log": [],
+    "feedback_applied": false,
+    "recent_proposals": [
+      {
+        "cycle": 4,
+        "proposal": "No change this cycle",
+        "app_name": null,
+        "kind": "none",
+        "proposal_key": null,
+        "score": 0.0,
+        "status": "proposed",
+        "top_candidates": []
+      },
+      {
+        "cycle": 5,
+        "proposal": "No change this cycle",
+        "app_name": null,
+        "kind": "none",
+        "proposal_key": null,
+        "score": 0.0,
+        "status": "deferred",
+        "top_candidates": []
+      },
+      {
+        "cycle": 6,
+        "proposal": "No change this cycle",
+        "app_name": null,
+        "kind": "none",
+        "proposal_key": null,
+        "score": 0.0,
+        "status": "proposed",
+        "top_candidates": []
+      },
+      {
+        "cycle": 7,
+        "proposal": "Silence non-essential Gmail notifications",
+        "app_name": "Gmail",
+        "kind": "notification_drag",
+        "proposal_key": "notification_drag::Gmail",
+        "score": 0.554,
+        "status": "proposed",
+        "top_candidates": [
+          {
+            "app_name": "Gmail",
+            "kind": "notification_drag",
+            "score": 0.554,
+            "proposal_key": "notification_drag::Gmail"
+          }
+        ]
+      },
+      {
+        "cycle": 8,
+        "proposal": "Silence non-essential Gmail notifications",
+        "app_name": "Gmail",
+        "kind": "notification_drag",
+        "proposal_key": "notification_drag::Gmail",
+        "score": 0.504,
+        "status": "proposed",
+        "top_candidates": [
+          {
+            "app_name": "Gmail",
+            "kind": "notification_drag",
+            "score": 0.504,
+            "proposal_key": "notification_drag::Gmail"
+          }
+        ]
+      }
+    ]
+  },
+  "apps": {
+    "Chrome": {
+      "launches": 32,
+      "average_duration_seconds": 300.0,
+      "short_session_ratio": 0.0,
+      "low_signal_ratio": 0.0,
+      "notifications_received": 0,
+      "notifications_dismissed_unread": 0,
+      "battery_delta_total": 10
+    },
+    "Gmail": {
+      "launches": 14,
+      "average_duration_seconds": 150.0,
+      "short_session_ratio": 0.0,
+      "low_signal_ratio": 0.0,
+      "notifications_received": 20,
+      "notifications_dismissed_unread": 14,
+      "battery_delta_total": 2
+    },
+    "Messages": {
+      "launches": 45,
+      "average_duration_seconds": 73.3,
+      "short_session_ratio": 0.0,
+      "low_signal_ratio": 0.0,
+      "notifications_received": 60,
+      "notifications_dismissed_unread": 35,
+      "battery_delta_total": 3
+    },
+    "Spotify": {
+      "launches": 8,
+      "average_duration_seconds": 2700.0,
+      "short_session_ratio": 0.0,
+      "low_signal_ratio": 0.0,
+      "notifications_received": 0,
+      "notifications_dismissed_unread": 0,
+      "battery_delta_total": 12
+    },
+    "TikTok": {
+      "launches": 22,
+      "average_duration_seconds": 68.2,
+      "short_session_ratio": 0.0,
+      "low_signal_ratio": 0.0,
+      "notifications_received": 8,
+      "notifications_dismissed_unread": 7,
+      "battery_delta_total": 6
+    },
+    "YouTube": {
+      "launches": 18,
+      "average_duration_seconds": 800.0,
+      "short_session_ratio": 0.0,
+      "low_signal_ratio": 0.0,
+      "notifications_received": 6,
+      "notifications_dismissed_unread": 3,
+      "battery_delta_total": 18
+    }
+  }
+}

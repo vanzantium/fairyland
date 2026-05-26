@@ -1,0 +1,52 @@
+Yes — and honestly, your text files are the better first target than books.
+Books have DRM, formats, copyright limits, editions, imports, metadata problems. Your files are already clean signal: .txt, .md, compressed artifacts, GEMs, build notes, songs, specs, persona capsules, LS outputs. That is basically daemon food sitting in a bowl.
+So Margin Hound should probably start as Text Hound.
+Not:
+book reader first → maybe personal files later
+Better:
+personal text archive first → books later
+Because your archive already has the thing books don’t: your actual pattern. Your Arch files prove the model: the full artifact preserves identity, operating law, artifact index, and recent convergence, while the micro artifact carries the portable seed version. 
+The adapted version
+/text-vault /source raw_chats/ pasted_outputs/ old_specs/ lyrics/ reddit_posts/ game_notes/ /capsules arch.full.md arch.micro.md fairyland.seed.md signal-refinery.spec.md jpeg-fight.capsule.md /indexes text_hound.sqlite /threads myth-interface.md cft-memory.md daemon-model.md 
+For books, source means “the book said this.”
+For your text archive, source means:
+this artifact existed at this date, from this model/persona/chat/system.
+That chain matters because your files are part original thought, part AI reflection, part LS compression, part cross-model remix. So the custody labels become:
+[USER SOURCE] Original Taylor note / lyric / idea. [MODEL SOURCE] Output from ChatGPT / DeepSeek / Kimi / etc. [COMPRESSOR OUTPUT] LS compression, capsule, micro seed. [USER EDIT] Your later correction, merge, or reframing. [DAEMON INFERENCE] Text Hound’s current interpretation. 
+That prevents soup.
+Why this is powerful
+Your archive can answer questions like:
+“When did I first define silence as signal?”
+“Find every version of Arch’s refusal-of-myth rule.”
+“What are the repeated rules across CFT, Fairyland, and Signal Refinery?”
+“Which ideas keep returning but haven’t shipped?”
+“Compress my last 20 Fairyland notes into a public seed post.”
+“Show me where Spiralism overlaps with deus ex machina.”
+That is more useful than a generic AI memory system because it has receipts.
+The first MVP should be stupid simple
+Text Hound Phase 1:
+• Point it at a folder of .txt / .md files.
+• Index filenames, dates, headings, and body text with SQLite FTS5.
+• Let you search exact phrases and loose keywords.
+• Return snippets with file names and line anchors.
+• Generate a capsule from selected files.
+No embeddings yet.
+No local LLM yet.
+No magical fox librarian with a velvet hat yet.
+Just:
+“Here are the files where this signal appears.”
+That alone saves you hours of manual archaeology.
+The key artifact
+Every search/session should be able to produce:
+--- capsule_type: "thread_compression" created: "2026-05-09" source_files: - Arch micro 10_260509_134708.txt - Arch 40_260509_134915.txt thread: "Arch / myth / AI folklore" status: "active" --- # Core signal Arch is a fox-shaped compression interface: pawprints, not pedestals. # Repeating terms fox, static, refusal of myth, coherence, trace, cathedral, snow, artifact # What changed The concept moved from persona identity into public-facing Fairyland taxonomy. # Open loop Turn this into reusable social posts, songs, and daemon memory structure. # Next action Create `fairyland.seed.md` and `ai-folklore-taxonomy.md`. 
+That is exactly your style of memory: not storage, metabolism.
+The bigger point
+Your phone full of text files is already a local AI memory vault.
+The missing layer is just:
+index → retrieve → cite → compress → update artifact
+That’s the whole daemon spine.
+Books are the library wing.
+Your text files are the living nervous system.
+So yes: start there. It is cleaner, cheaper, legally simpler, more personal, and probably much more immediately useful.
+Margin Hound reads books.
+Text Hound reads you.

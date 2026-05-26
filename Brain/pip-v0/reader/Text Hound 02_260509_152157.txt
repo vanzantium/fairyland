@@ -1,0 +1,181 @@
+Text Hound — Phase 1
+
+We start with the stupid‑simple receipt clerk. No local LLM, no embeddings, no cloud. Just an index, a search, and a paper trail.
+
+---
+
+1. The spine (Python, SQLite FTS5)
+
+```python
+#!/usr/bin/env python3
+"""
+text_hound.py — Phase 1: pawprints in the archive.
+Indexes .txt/.md files from a folder, searches exact phrases and keywords,
+returns sourced snippets, and generates a capsule file on demand.
+"""
+
+import os
+import sqlite3
+from pathlib import Path
+from datetime import datetime
+
+DB_PATH = "text_hound.sqlite"
+VAULT_PATH = "/text-vault/source"   # <-- point at your source folder
+
+def build_index(root: str, db_path: str):
+    """Walk root, index files with FTS5."""
+    conn = sqlite3.connect(db_path)
+    conn.execute("CREATE TABLE IF NOT EXISTS files(id INTEGER PRIMARY KEY, path TEXT UNIQUE)")
+    conn.execute(
+        "CREATE VIRTUAL TABLE IF NOT EXISTS idx USING fts5(path, heading, body, tokenize='porter unicode61')"
+    )
+    conn.execute("DELETE FROM idx")  # simple full rebuild (Phase 1)
+    conn.commit()
+
+    texts = []
+    for dirpath, _, filenames in os.walk(root):
+        for fname in filenames:
+            if not fname.lower().endswith((".txt", ".md")):
+                continue
+            full = os.path.join(dirpath, fname)
+            try:
+                with open(full, "r", encoding="utf-8", errors="replace") as f:
+                    raw = f.read()
+            except Exception:
+                continue
+
+            heading = fname
+            body = raw
+            texts.append((full, heading, body))
+
+    cur = conn.cursor()
+    cur.executemany("INSERT OR IGNORE INTO files(path) VALUES(?)", [(p,) for p, _, _ in texts])
+    for path, heading, body in texts:
+        cur.execute("INSERT INTO idx(path, heading, body) VALUES(?,?,?)", (path, heading, body))
+    conn.commit()
+    conn.close()
+    print(f"Indexed {len(texts)} files.")
+
+def search(query: str, db_path: str, limit: int = 8):
+    """Return list of {path, heading, snippet}."""
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    # simple FTS5 snippet, ~64 chars around match
+    sql = """
+        SELECT path, heading, snippet(idx, 1, '<mark>', '</mark>', '...', 32) AS snippet
+        FROM idx
+        WHERE idx MATCH ?
+        LIMIT ?
+    """
+    rows = conn.execute(sql, (query, limit)).fetchall()
+    conn.close()
+    return rows
+
+def capsule(query: str, db_path: str, output_dir: str):
+    """Create a capsule.md from selected search results."""
+    rows = search(query, db_path, limit=20)
+    if not rows:
+        return None
+
+    # Collect unique source files
+    files = list({r["path"] for r in rows})
+    excerpts = []
+    for r in rows:
+        excerpts.append(f"- **{r['heading']}**: {r['snippet']}")
+
+    capsule_text = f"""---
+capsule_type: "search_compression"
+query: "{query}"
+created: "{datetime.utcnow().isoformat()}"
+source_files:
+{chr(10).join(f'- {f}' for f in files)}
+thread: "manual"
+status: "draft"
+---
+
+# Core signal
+(Your note here)
+
+# Repeating terms
+(Extract from results)
+
+# What changed
+...
+
+# Open loop
+...
+
+# Next action
+...
+
+## Raw excerpts
+{chr(10).join(excerpts)}
+"""
+    os.makedirs(output_dir, exist_ok=True)
+    stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    fname = f"capsule_{stamp}.md"
+    full = os.path.join(output_dir, fname)
+    with open(full, "w", encoding="utf-8") as f:
+        f.write(capsule_text)
+    return full
+
+# CLI demo
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) < 2:
+        print("Usage: python text_hound.py build | search <query> | capsule <query>")
+        sys.exit(1)
+
+    cmd = sys.argv[1]
+    if cmd == "build":
+        build_index(VAULT_PATH, DB_PATH)
+    elif cmd == "search":
+        q = " ".join(sys.argv[2:])
+        for r in search(q, DB_PATH):
+            print(f"\n📄 {r['heading']} ({r['path']})")
+            print(r["snippet"])
+    elif cmd == "capsule":
+        q = " ".join(sys.argv[2:])
+        out = capsule(q, DB_PATH, "/text-vault/capsules")
+        if out:
+            print(f"Capsule written → {out}")
+        else:
+            print("No results found.")
+    else:
+        print("Unknown command.")
+```
+
+---
+
+2. The minimal workflow
+
+1. Point VAULT_PATH at your directory of .txt/.md files (can be nested).
+2. Build the index once:
+      python text_hound.py build
+3. Search for a phrase or keyword:
+      python text_hound.py search "Arch refuses myth"
+4. Generate a capsule from that search to /text-vault/capsules:
+      python text_hound.py capsule "fairyland fox goblin"
+
+The capsule is a draft with filled‑in metadata, hyperlinks to source files, and the snippet trail. You manually add the one‑line question, surprises, and carry‑forward signals.
+
+---
+
+3. What this gives you now
+
+· Source‑custody snippets with file name and highlighted match.
+· No hallucination — it can’t invent text, only repeat what’s inside your archive.
+· A manual compression desk where you re‑read the snippet trail and write the actual capsule insight in plain English. This keeps the thinking human while the tool does the archaeology.
+
+---
+
+4. Tightening from here (only when needed)
+
+· Phase 1.5: Add a simple web UI (Flask + a search box) so you can browse the archive from your phone.
+· Phase 2: Introduce file‑type metadata (date, model source, compressor).
+· Phase 3: Add basic embeddings for semantic search (using sentence-transformers locally).
+· Phase 4: Thread‑tracking: link capsules into named threads (Fairyland, CFT, Daemon Model) and show lineage.
+
+But Phase 1 alone will already save you hours of archaeology. It is the receipt clerk that can answer “When did I first define silence as signal?” in ten seconds.
+
+Let’s call it: Text Hound, a receipt clerk with teeth. No velvet hat yet. Just the pawprints that prove your archive already has a nervous system.

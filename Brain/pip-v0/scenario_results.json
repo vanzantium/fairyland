@@ -1,0 +1,296 @@
+{
+  "balanced_week": {
+    "proposal": {
+      "proposal": "Hide TikTok from the home screen",
+      "evidence": "Opened 45 times this week, with 45 sessions under 45 seconds. Total time: 20.8 minutes. High frequency, low yield.",
+      "rationale_tags": [
+        "low_engagement",
+        "high_frequency",
+        "attention_drain"
+      ],
+      "score": 0.935,
+      "source_kind": "attention_drain"
+    },
+    "thermal_state": {
+      "coherence": 0.614,
+      "pressure": 0.249,
+      "drift": 0.125,
+      "groove": 0.375,
+      "integration_debt": 0.4,
+      "scar": 0.625
+    },
+    "decision_trace": {
+      "loops_run": 1,
+      "halted_reason": "high_confidence",
+      "top_margin": 0.13,
+      "notes": []
+    },
+    "top_candidates": [
+      {
+        "kind": "attention_drain",
+        "app_name": "TikTok",
+        "score": 0.935,
+        "evidence": "Opened 45 times this week, with 45 sessions under 45 seconds. Total time: 20.8 minutes. High frequency, low yield.",
+        "rationale_tags": [
+          "low_engagement",
+          "high_frequency",
+          "attention_drain"
+        ],
+        "proposal": "Hide TikTok from the home screen"
+      },
+      {
+        "kind": "battery_mismatch",
+        "app_name": "TikTok",
+        "score": 0.805,
+        "evidence": "TikTok consumed 92 battery points across short sessions averaging 27.8 seconds.",
+        "rationale_tags": [
+          "battery_cost",
+          "low_signal",
+          "resource_reduction"
+        ],
+        "proposal": "Restrict background activity for TikTok"
+      },
+      {
+        "kind": "battery_mismatch",
+        "app_name": "Messages",
+        "score": 0.656,
+        "evidence": "Messages consumed 35 battery points across short sessions averaging 62.5 seconds.",
+        "rationale_tags": [
+          "battery_cost",
+          "low_signal",
+          "resource_reduction"
+        ],
+        "proposal": "Restrict background activity for Messages"
+      }
+    ]
+  },
+  "battery_bleed_week": {
+    "proposal": {
+      "proposal": "Restrict background activity for TikTok",
+      "evidence": "TikTok consumed 120 battery points across short sessions averaging 28.5 seconds.",
+      "rationale_tags": [
+        "battery_cost",
+        "low_signal",
+        "resource_reduction"
+      ],
+      "score": 0.88,
+      "source_kind": "battery_mismatch"
+    },
+    "thermal_state": {
+      "coherence": 0.608,
+      "pressure": 0.217,
+      "drift": 0.125,
+      "groove": 0.25,
+      "integration_debt": 0.4,
+      "scar": 0.625
+    },
+    "decision_trace": {
+      "loops_run": 3,
+      "halted_reason": "max_loops",
+      "top_margin": 0.125,
+      "notes": [
+        "loop_1: close candidates refined with thermal nudges",
+        "loop_2: close candidates refined with thermal nudges",
+        "loop_3: close candidates refined with thermal nudges"
+      ]
+    },
+    "top_candidates": [
+      {
+        "kind": "battery_mismatch",
+        "app_name": "TikTok",
+        "score": 0.88,
+        "evidence": "TikTok consumed 120 battery points across short sessions averaging 28.5 seconds.",
+        "rationale_tags": [
+          "battery_cost",
+          "low_signal",
+          "resource_reduction"
+        ],
+        "proposal": "Restrict background activity for TikTok"
+      },
+      {
+        "kind": "attention_drain",
+        "app_name": "TikTok",
+        "score": 0.755,
+        "evidence": "Opened 24 times this week, with 24 sessions under 45 seconds. Total time: 11.4 minutes. High frequency, low yield.",
+        "rationale_tags": [
+          "low_engagement",
+          "high_frequency",
+          "attention_drain"
+        ],
+        "proposal": "Hide TikTok from the home screen"
+      },
+      {
+        "kind": "battery_mismatch",
+        "app_name": "Messages",
+        "score": 0.706,
+        "evidence": "Messages consumed 434 battery points across short sessions averaging 56.8 seconds.",
+        "rationale_tags": [
+          "battery_cost",
+          "low_signal",
+          "resource_reduction"
+        ],
+        "proposal": "Restrict background activity for Messages"
+      }
+    ]
+  },
+  "doomscroll_week": {
+    "proposal": {
+      "proposal": "Hide TikTok from the home screen",
+      "evidence": "Opened 102 times this week, with 102 sessions under 45 seconds. Total time: 27.5 minutes. High frequency, low yield.",
+      "rationale_tags": [
+        "low_engagement",
+        "high_frequency",
+        "attention_drain"
+      ],
+      "score": 0.935,
+      "source_kind": "attention_drain"
+    },
+    "thermal_state": {
+      "coherence": 0.492,
+      "pressure": 0.333,
+      "drift": 0.125,
+      "groove": 0.25,
+      "integration_debt": 0.4,
+      "scar": 0.625
+    },
+    "decision_trace": {
+      "loops_run": 1,
+      "halted_reason": "high_confidence",
+      "top_margin": 0.13,
+      "notes": []
+    },
+    "top_candidates": [
+      {
+        "kind": "attention_drain",
+        "app_name": "TikTok",
+        "score": 0.935,
+        "evidence": "Opened 102 times this week, with 102 sessions under 45 seconds. Total time: 27.5 minutes. High frequency, low yield.",
+        "rationale_tags": [
+          "low_engagement",
+          "high_frequency",
+          "attention_drain"
+        ],
+        "proposal": "Hide TikTok from the home screen"
+      },
+      {
+        "kind": "battery_mismatch",
+        "app_name": "TikTok",
+        "score": 0.805,
+        "evidence": "TikTok consumed 310 battery points across short sessions averaging 16.2 seconds.",
+        "rationale_tags": [
+          "battery_cost",
+          "low_signal",
+          "resource_reduction"
+        ],
+        "proposal": "Restrict background activity for TikTok"
+      },
+      {
+        "kind": "battery_mismatch",
+        "app_name": "Chrome",
+        "score": 0.69,
+        "evidence": "Chrome consumed 121 battery points across short sessions averaging 42.9 seconds.",
+        "rationale_tags": [
+          "battery_cost",
+          "low_signal",
+          "resource_reduction"
+        ],
+        "proposal": "Restrict background activity for Chrome"
+      }
+    ]
+  },
+  "healthy_week": {
+    "proposal": {
+      "proposal": "No change this cycle",
+      "evidence": "The current week does not show a strong enough friction pattern to justify a reduction proposal.",
+      "rationale_tags": [
+        "no_clear_winner"
+      ],
+      "score": 0.0,
+      "source_kind": "none"
+    },
+    "thermal_state": {
+      "coherence": 0.661,
+      "pressure": 0.214,
+      "drift": 0.0,
+      "groove": 0.35,
+      "integration_debt": 0.2,
+      "scar": 0.25
+    },
+    "decision_trace": {
+      "loops_run": 0,
+      "halted_reason": "no_candidates",
+      "top_margin": 0.0,
+      "notes": []
+    },
+    "top_candidates": []
+  },
+  "notification_hell_week": {
+    "proposal": {
+      "proposal": "Silence non-essential Calendar notifications",
+      "evidence": "Calendar generated 230 notifications this week and 208 were dismissed unread.",
+      "rationale_tags": [
+        "notification_pressure",
+        "dismissed_unread",
+        "attention_drain"
+      ],
+      "score": 0.928,
+      "source_kind": "notification_drag"
+    },
+    "thermal_state": {
+      "coherence": 0.541,
+      "pressure": 0.321,
+      "drift": 0.125,
+      "groove": 0.375,
+      "integration_debt": 0.4,
+      "scar": 0.5
+    },
+    "decision_trace": {
+      "loops_run": 3,
+      "halted_reason": "max_loops",
+      "top_margin": 0.013,
+      "notes": [
+        "loop_1: close candidates refined with thermal nudges",
+        "loop_2: close candidates refined with thermal nudges",
+        "loop_3: close candidates refined with thermal nudges"
+      ]
+    },
+    "top_candidates": [
+      {
+        "kind": "notification_drag",
+        "app_name": "Calendar",
+        "score": 0.928,
+        "evidence": "Calendar generated 230 notifications this week and 208 were dismissed unread.",
+        "rationale_tags": [
+          "notification_pressure",
+          "dismissed_unread",
+          "attention_drain"
+        ],
+        "proposal": "Silence non-essential Calendar notifications"
+      },
+      {
+        "kind": "notification_drag",
+        "app_name": "Gmail",
+        "score": 0.915,
+        "evidence": "Gmail generated 1038 notifications this week and 906 were dismissed unread.",
+        "rationale_tags": [
+          "notification_pressure",
+          "dismissed_unread",
+          "attention_drain"
+        ],
+        "proposal": "Silence non-essential Gmail notifications"
+      },
+      {
+        "kind": "notification_drag",
+        "app_name": "Messages",
+        "score": 0.913,
+        "evidence": "Messages generated 1429 notifications this week and 1240 were dismissed unread.",
+        "rationale_tags": [
+          "notification_pressure",
+          "dismissed_unread",
+          "attention_drain"
+        ],
+        "proposal": "Silence non-essential Messages notifications"
+      }
+    ]
+  }
+}

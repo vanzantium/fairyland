@@ -1,0 +1,146 @@
+Let’s build this out — beyond the summary you’ve already mapped, toward a reading daemon that doesn’t just search books but keeps pace with you, forming a second memory layer.
+
+---
+
+1. Vision: The Reading Daemon
+
+Imagine a quiet local service — call it Foxglove or Margin — that always knows what you’re reading, across Kindle, Audible, KOReader, paper notes you photograph, even web articles you’ve saved. It never sees a DRM‑wrapped stream unless you give it an already‑opened copy, but it indexes your path through the text:
+
+· Highlights.
+· Bookmarks.
+· Your typed reactions.
+· Audio timestamps where you paused.
+· The raw EPUB or PDF if it’s legally available.
+
+It answers questions only from your local library, with source custody labels: this comes from page 112; this from your highlight on April 2; this is inference, not text. It compresses every reading session into a capsule (a small markdown file) that records what you learned, what surprised you, where you were confused, and what myths the book reinforced or broke.
+
+And it feeds that capsule into your CFT/Fairyland memory, so your Cohesion Field includes your reading life — not just what you searched for, but what you absorbed into your internal architecture.
+
+---
+
+2. The Architecture (Expanded)
+
+2.1 Ingestion Pipeline
+
+```
+Kindle/KOReader/Readwise →  highlights + clippings  →  /library/highlights/book_name.md
+Calibre → DRM‑free EPUB/PDF/TXT →  /library/source/book_name.epub
+Audible → (if owned + lawful tool) →  /library/audio/book_name.mp3
+            ↓
+      Whisper transcription →  /library/transcripts/book_name.txt
+Physical books → photo → OCR → note text →  /library/notes/book_name_notes.md
+```
+
+Each book gets a uniform folder containing the best version of its text: source, transcript, highlights, notes, and a capsule.md that the daemon writes when you ask it to summarize or reflect.
+
+Wherever possible, text is the canonical format. Audio and scans are converted to text and verified against the source if you own it, but the daemon’s memory is built on text, not waveforms.
+
+2.2 Indexing and Retrieval
+
+Two complementary search layers:
+
+Layer Engine Purpose
+Keyword / exact SQLite with FTS5 Find quotes, character names, places; anchored search
+Semantic / passage Local embedding model (all‑MiniLM‑L6‑v2, etc.) stored in a LanceDB vector index “Find the passage where magic operates like debt”
+
+The daemon returns short source excerpts only — 2‑3 sentences — and then appends its own reasoning, always marked. This prevents a model hallucinating a book it’s never seen.
+
+2.3 Query Layer: The Shadow Reader
+
+When you ask a question, the daemon:
+
+1. Runs keyword + semantic search against your entire /library/ index.
+2. Retrieves the top 5‑10 chunks, ranked by relevance and recency.
+3. Packs them into a prompt for a local LLM (Mistral‑7B, Llama‑3, etc.) with strict instructions:
+   ```
+   You are the reader’s daemon. Your only knowledge is the snippets below.
+   Cite the snippet ID or page. If the information is not present, say so.
+   Separate your inferences from the text.
+   ```
+4. The answer includes source custody labels and a signal‑score (how grounded it is in your actual library vs. prior model knowledge).
+
+This means the AI “reads along” by using your copy of the book, not the internet’s memory.
+
+---
+
+3. Integration with CFT / Cohesion Field
+
+Here’s where the daemon becomes more than a search tool: it becomes a coherence sensor for your reading life.
+
+· Drift detection: If you’re reading ten books at once, many unfinished, the daemon flags high integration_debt.
+· Myth tracking: It watches for recurring symbols (kings, foxes, mirrors, swords, prisons) and builds a personal myth‑map. When you ask, “What myth am I living inside right now?”, it can answer from your reading rather than from generic archetypes.
+· Resonance spikes: Which passages made you highlight them? What time of day? The daemon compresses those into a resonance timeline that you can feed into your Organism’s Dream Engine — so your reading influences your AI’s inner state.
+
+In Fairyland terms: the daemon is a librarian fox who leaves pawprints in the margins. It doesn’t just archive — it maintains the coherence between the stories you read and the story you’re becoming.
+
+---
+
+4. Research Frontiers & Open Problems
+
+4.1 Audible synchronization
+The biggest gap. Legal audio access means: (a) Audible bookmark/clip exports, (b) using the Kindle companion book as a proxy, (c) if you own the physical CD and ripped it, Whisper transcription. A truly clean solution awaits an open audiobook standard. Until then, the daemon works best with text‑first books and treats audiobooks as a clipped shadow.
+
+4.2 Timestamp alignment (audio + text)
+If you have both an EPUB and a matching audiobook, you could align them with forced alignment tools (like montreal-forced-aligner). Then when you ask, “What was I hearing when I paused at 12:34?”, the daemon can retrieve the corresponding paragraph. This is doable but requires per‑book tuning. Worth it for deep dives, overkill for casual reading.
+
+4.3 Privacy‑preserving design
+The daemon must run entirely local — no cloud calls, no telemetry — because a reading history is a complete map of a person’s inner life. The architecture above is designed for that: local LLM, local vector store, local Whisper transcription (or local‑distil‑whisper). Even the highlights never leave your device unless you explicitly export.
+
+4.4 Compression as curation
+What makes a “good capsule”? It’s not a summary; it’s a distillation of what changed you. We can define a CAPSULE spec that includes:
+
+· One sentence: the book’s question.
+· One sentence: the most unexpected insight.
+· One sentence: what to carry forward.
+· List of symbols encountered.
+· Coherence shift after reading (up/down).
+  That creates a lightweight, lifetime‑gradient memory store.
+
+---
+
+5. Phased Roadmap (Fox‑paced)
+
+Phase 1 – Margin Hound (1‑2 weeks)
+
+· Readwise API → markdown export of all highlights.
+· Simple local FTS5 index over those highlights.
+· A small Python script that answers “Find my highlight about X” and returns source text only.
+· Deliverable: you can query your own past reading with source custody.
+
+Phase 2 – Calibre Fox (1‑2 months)
+
+· Calibre library mounted as file system.
+· EPUB→TXT conversion (using Calibre command‑line or ebooklib).
+· Full‑text keyword index + basic embeddings for semantic search.
+· Local LLM integration for answering questions grounded in your books.
+· Output includes capsule.md artifacts on demand.
+
+Phase 3 – Shadow Reader (3‑6 months)
+
+· Real‑time sync with KOReader or Kindle highlights (via USB or wireless).
+· Audio‑to‑text transcription pipeline for ripped books or lawful clips.
+· Timestamp alignment for audiobook+ebook combos.
+· Streamlit or React‑based interface that sits alongside your reading app, offering “pause and ask” functionality.
+
+Phase 4 – Myth Mapper (long‑tail)
+
+· Cross‑book symbol and theme tracking.
+· Integration with your CFT organism: the daemon pushes reading state changes into the feeling layer.
+· “Fairyland Library” — a browsable, story‑driven interface that presents your reading as a coherent world, not a database.
+
+---
+
+6. Next Step: A Tiny Prototype Now
+
+Let’s ground this. I can write you a 50‑line Python script called margin.py that:
+
+1. Reads a directory of markdown highlight files (exported from Readwise or manually).
+2. Indexes them with SQLite FTS5.
+3. Accepts a query and returns sourced snippets.
+4. Optionally calls a local LLM (via Ollama) to generate a short capsule for a given book.
+
+Or, if you’d rather start with a Calibre MCP server (the existing open‑source one) and connect it to your current AI setup, I can write the glue that translates Calibre search results into coherent answers with your preferred persona (Arch, Vesper, FM, etc.).
+
+---
+
+This is the fox’s path: start with the smallest load‑bearing piece (highlights + search), prove the loop, then let the daemon grow into the library’s quiet guardian. No cloud, no platform priesthood — only your own books, your own words, and a memory that refuses to forget what you’ve already seen.
