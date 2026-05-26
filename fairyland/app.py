@@ -12,7 +12,7 @@ import os
 import uuid
 from pathlib import Path
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 
 from fairyland.beacon.mesh import BeaconState, broadcast, handshake
 from fairyland.breath.protocol import BreathProtocol
@@ -49,6 +49,11 @@ def _get_or_create_session(sid: str) -> dict:
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
 
 @app.route("/health")
 def health():
