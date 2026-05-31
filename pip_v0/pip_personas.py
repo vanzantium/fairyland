@@ -1,24 +1,29 @@
 """
-pip_personas.py — The Persona Orchestrator for the Digital Tavern.
-Manages loading persona shells and dispatching tasks via UI automation.
+pip_personas.py — Persona orchestrator for the Digital Tavern.
+
+Loads persona configs (Claude Code, Codex, Antigravity, etc.) and
+dispatches tasks via the text bridge — Pip types into the tool window,
+waits for a response, and copies it back through the clipboard.
 """
-import os
+from __future__ import annotations
+
 import json
-import time
 from pathlib import Path
-from . import pip_hands
+
 from . import pip_evolution
 from . import pip_safety
+from . import pip_text_bridge
 
 PERSONAS_DIR = Path(__file__).resolve().parent / "personas"
 
+
 def load_personas() -> dict:
-    """Loads all available persona configurations."""
+    """Load all available persona configurations."""
     personas = {}
     if not PERSONAS_DIR.exists():
         PERSONAS_DIR.mkdir()
         return personas
-        
+
     for pfile in PERSONAS_DIR.glob("*.json"):
         try:
             config = json.loads(pfile.read_text(encoding="utf-8"))
@@ -28,86 +33,104 @@ def load_personas() -> dict:
                     personas[str(alias).lower()] = config
         except Exception as e:
             print(f"[personas] Failed to load {pfile.name}: {e}")
-            
+
     return personas
 
-def focus_window_by_title(title_snippet: str) -> bool:
-    """Tries to bring a window containing the title_snippet to the foreground."""
-    try:
-        import pygetwindow as gw
-        windows = gw.getWindowsWithTitle(title_snippet)
-        if windows:
-            win = windows[0]
-            if win.isMinimized:
-                win.restore()
-            try:
-                win.activate()
-            except Exception as e:
-                # Background processes often can't steal focus natively. 
-                # Fallback: physical click the title bar or center of the window.
-                try:
-                    import pyautogui
-                    pyautogui.click(win.left + win.width // 2, win.top + win.height // 2)
-                except Exception:
-                    pass
-            time.sleep(0.5)
-            return True
-    except ImportError:
-        pass
-    except Exception as e:
-        pass
-    
-    return False
 
-def dispatch_task(persona_name: str, task_text: str) -> dict:
-    """Dispatches a text task to a specific persona via UI macros."""
+def dispatch_task(persona_name: str, task_text: str,
+                  approved_request_id: str = "",
+                  response_wait_s: float | None = None) -> dict:
+    """
+    Dispatch a task to a persona via text bridge.
+
+    First call (no approval): queues a safety permission request.
+    Second call (with approved_request_id): executes the bridge.
+    """
     personas = load_personas()
     name = persona_name.lower().replace("@", "")
-    
-    if name not in personas:
-        return {"ok": False, "message": f"I couldn't find a persona named {persona_name} in the Tavern."}
-        
-    config = personas[name]
-    macros = config.get("macros", {}).get("submit_task", [])
-    
-    if not macros:
-        return {"ok": False, "message": f"Persona {persona_name} doesn't know how to submit tasks!"}
 
-    request = pip_safety.request_safety_permission(
-        "ui_automation",
-        title=f"Approve persona handoff: {persona_name}",
-        rationale=f"Submit task to {config.get('app_name', name)} using UI automation.",
-        details={"persona": persona_name, "app": config.get("app_name", name), "task": task_text},
+    if name not in personas:
+        return {
+            "ok": False,
+            "message": f"Unknown persona: {persona_name}. "
+                       f"Available: {', '.join(set(c.get('name','') for c in personas.values()))}",
+        }
+
+    config = personas[name]
+    app_name = config.get("app_name", name)
+
+    # --- Phase 1: require approval ---
+    if not approved_request_id:
+        request = pip_safety.request_safety_permission(
+            "ui_automation",
+            title=f"Approve text bridge: {app_name}",
+            rationale=f"Pip will type into {app_name}, wait for a response, and copy it back.",
+            details={
+                "persona": name,
+                "app": app_name,
+                "task_preview": task_text[:120],
+            },
+        )
+        return {
+            "ok": False,
+            "blocked": True,
+            "message": f"Queued {app_name} bridge for approval. "
+                       f"Approve in the dashboard, then re-send with the request ID.",
+            "permission_request": request,
+        }
+
+    # --- Phase 2: verify approval and execute ---
+    consumed = pip_safety.consume_approved_permission(
+        "ui_automation", approved_request_id,
     )
+    if not consumed.get("ok"):
+        return {
+            "ok": False,
+            "message": consumed.get("message", "Permission not valid."),
+        }
+
+    # Execute via text bridge
+    result = pip_text_bridge.send(name, task_text, response_wait_s=response_wait_s)
+
+    if result.ok:
+        pip_evolution.award_xp(app_name, 5)
+
     return {
-        "ok": False,
-        "blocked": True,
-        "message": f"I queued the {persona_name} handoff for approval before touching {config.get('app_name', name)}.",
-        "permission_request": request,
+        "ok": result.ok,
+        "persona": result.persona,
+        "app": app_name,
+        "task": result.task,
+        "response": result.response,
+        "elapsed_s": result.elapsed_s,
+        "harvest_method": result.harvest_method,
+        "needs_manual_copy": result.needs_manual_copy,
+        "error": result.error or None,
     }
-        
-    # Execute the macro sequence
-    print(f"[personas] Dispatching task to {persona_name}...")
-    for step in macros:
-        action = step.get("action")
-        if action == "focus_window":
-            # Attempt to focus the app
-            success = focus_window_by_title(config.get("window_title", ""))
-            if not success:
-                # If we can't find it, we prompt the user to open it manually.
-                return {"ok": False, "message": f"I couldn't find the {config.get('app_name')} window. Please open it so {persona_name} can take over!"}
-                
-        elif action == "type_text":
-            source = step.get("source")
-            text_to_type = task_text if source == "task_input" else step.get("text", "")
-            if pip_hands.type_text(text_to_type, interval=0.02):
-                pip_evolution.award_xp(config.get("app_name", name), 5)
-            
-        elif action == "press_key":
-            key = step.get("key")
-            if pip_hands.press_key(key):
-                pip_evolution.award_xp(config.get("app_name", name), 2)
-            
-        time.sleep(0.5) # Slight pause between macro steps
-        
-    return {"ok": True, "message": f"I've handed the task off to {config.get('app_name', name)}! Check the control panel to see if this app leveled up."}
+
+
+def quick_send(persona_name: str, task_text: str,
+               response_wait_s: float | None = None) -> dict:
+    """
+    Skip the permission queue and send directly.
+    Use this when the user is sitting at the keyboard and
+    explicitly asked Pip to talk to a tool.
+    """
+    result = pip_text_bridge.send(
+        persona_name, task_text, response_wait_s=response_wait_s,
+    )
+
+    if result.ok:
+        config = pip_text_bridge._load_persona(persona_name.lower().replace("@", ""))
+        app_name = config.get("app_name", persona_name) if config else persona_name
+        pip_evolution.award_xp(app_name, 5)
+
+    return {
+        "ok": result.ok,
+        "persona": result.persona,
+        "task": result.task,
+        "response": result.response,
+        "elapsed_s": result.elapsed_s,
+        "harvest_method": result.harvest_method,
+        "needs_manual_copy": result.needs_manual_copy,
+        "error": result.error or None,
+    }

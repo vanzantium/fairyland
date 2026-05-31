@@ -773,6 +773,72 @@ def record_new_macro(args: argparse.Namespace) -> dict[str, Any]:
     return {"skill": "record_new_macro", "ok": True, "filename": target.name, "event_count": len(events)}
 
 
+# ---------------------------------------------------------------------------
+# Text bridge skills
+# ---------------------------------------------------------------------------
+
+def bridge_list_personas(args: argparse.Namespace) -> dict[str, Any]:
+    from . import pip_text_bridge
+    personas = pip_text_bridge.list_personas()
+    sessions = pip_text_bridge.list_sessions()
+    return {
+        "skill": "bridge_list",
+        "ok": True,
+        "personas": personas,
+        "active_sessions": sessions,
+    }
+
+
+def bridge_send_task(args: argparse.Namespace) -> dict[str, Any]:
+    from . import pip_personas
+    persona = getattr(args, "persona", "")
+    task = getattr(args, "task", "")
+    wait_s = getattr(args, "wait_s", None)
+    approved_id = getattr(args, "approved_request_id", "")
+
+    if not persona or not task:
+        return {"skill": "bridge_send", "ok": False, "message": "Provide --persona and --task"}
+
+    if wait_s is not None:
+        wait_s = float(wait_s)
+
+    return pip_personas.dispatch_task(
+        persona, task,
+        approved_request_id=approved_id or "",
+        response_wait_s=wait_s,
+    )
+
+
+def bridge_harvest_response(args: argparse.Namespace) -> dict[str, Any]:
+    from . import pip_text_bridge
+    from dataclasses import asdict
+    persona = getattr(args, "persona", "")
+    result = pip_text_bridge.harvest_clipboard(persona)
+    return {
+        "skill": "bridge_harvest",
+        "ok": result.ok,
+        "persona": result.persona,
+        "response": result.response,
+        "response_length": len(result.response),
+        "harvest_method": result.harvest_method,
+    }
+
+
+def bridge_get_history(args: argparse.Namespace) -> dict[str, Any]:
+    from . import pip_text_bridge
+    persona = getattr(args, "persona", "")
+    if not persona:
+        return {"skill": "bridge_history", "ok": False, "message": "Provide --persona"}
+    history = pip_text_bridge.get_history(persona)
+    return {
+        "skill": "bridge_history",
+        "ok": True,
+        "persona": persona,
+        "entries": history,
+        "count": len(history),
+    }
+
+
 SKILLS: dict[str, tuple[SkillSpec, Callable[[argparse.Namespace], dict[str, Any]]]] = {
     "inspect_platform": (
         SkillSpec(
@@ -1214,6 +1280,46 @@ SKILLS: dict[str, tuple[SkillSpec, Callable[[argparse.Namespace], dict[str, Any]
         ),
         resolve_permission,
     ),
+    "bridge_list": (
+        SkillSpec(
+            name="bridge_list",
+            description="List available text bridge personas and their status.",
+            inputs=[],
+            outputs=["persona list with bridge session status"],
+            permissions=["read persona configs"],
+        ),
+        bridge_list_personas,
+    ),
+    "bridge_send": (
+        SkillSpec(
+            name="bridge_send",
+            description="Send a task to an external tool via text bridge (type into window, harvest response via clipboard).",
+            inputs=["--persona claude|codex|anti", "--task 'your task text'", "--wait-s 30"],
+            outputs=["bridge result with response text"],
+            permissions=["ui_automation (requires approval)"],
+        ),
+        bridge_send_task,
+    ),
+    "bridge_harvest": (
+        SkillSpec(
+            name="bridge_harvest",
+            description="Manually harvest a response from the clipboard after a bridge send.",
+            inputs=["--persona claude|codex|anti"],
+            outputs=["clipboard content attached to last bridge result"],
+            permissions=["read clipboard"],
+        ),
+        bridge_harvest_response,
+    ),
+    "bridge_history": (
+        SkillSpec(
+            name="bridge_history",
+            description="Show task history for a text bridge persona.",
+            inputs=["--persona claude|codex|anti"],
+            outputs=["list of past tasks and response lengths"],
+            permissions=["read session state"],
+        ),
+        bridge_get_history,
+    ),
 }
 
 
@@ -1270,6 +1376,9 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--estimated-tokens", type=int, help="Estimated tokens for record_token_event")
     run_parser.add_argument("--actual-tokens", type=int, help="Actual tokens for record_token_event")
     run_parser.add_argument("--saved-tokens", type=int, help="Saved/avoided tokens for record_token_event")
+    run_parser.add_argument("--persona", help="Text bridge persona name (claude, codex, anti)")
+    run_parser.add_argument("--task", help="Task text to send via text bridge")
+    run_parser.add_argument("--wait-s", type=float, help="Seconds to wait for bridge response")
 
     return parser
 
