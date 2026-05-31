@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "default_workspace": "garden_spiders",
+  "workspaces": {
+    "garden_spiders": {
+      "name": "Garden Spiders",
+      "root": "${BRAIN_ROOT}/Garden Spiders/project",
+      "description": "First approved Pip game-idea sandbox. Pip may read project notes, configs, and builder source, and may only write draft artifacts under docs/pip-drafts.",
+      "readable_paths": [
+        "README.md",
+        "build_quiet_web.py",
+        "validate_quiet_web.py",
+        "run_build_loop.ps1",
+        "docs",
+        "levels",
+        "garden_spiders_builder",
+        "garden-spiders-quiet-web.json"
+      ],
+      "writable_draft_path": "docs/pip-drafts",
+      "denied_globs": [
+        "__pycache__/**",
+        "**/__pycache__/**",
+        "*.pyc",
+        "*.autosave",
+        "docs/pip-drafts/**",
+        "assets/**",
+        "*.jpg",
+        "*.jpeg",
+        "*.png",
+        "*.gif",
+        "*.mp3",
+        "*.wav"
+      ],
+      "text_extensions": [
+        ".md",
+        ".txt",
+        ".json",
+        ".py",
+        ".ps1"
+      ],
+      "max_file_bytes": 700000
+    }
+  }
+}
