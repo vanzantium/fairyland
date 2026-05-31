@@ -149,8 +149,8 @@ def start_job(kind: str, title: str, target: Callable[[str], Any], details: dict
 
 def start_autonomous_goal(goal_text: str) -> dict[str, Any]:
     def run(job_id: str) -> Any:
-        import pip_goal_engine
-        import pip_token_guard
+        from . import pip_goal_engine
+        from . import pip_token_guard
 
         assessment = pip_token_guard.assess_interaction(
             goal_text,

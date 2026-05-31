@@ -12,6 +12,9 @@ from .pip_engine import PipEngine, MemoryState, ThermalState, Tattoo, ProposalCa
 from .pip_token_guard import assess_interaction, record_event, status as token_status
 from . import pip_text_bridge as bridge
 from . import pip_personas as personas
+from . import pip_bridge_jobs as bridge_jobs
+from . import pip_self_improve as self_improve
+from . import pip_sentinel as sentinel
 
 __all__ = [
     "PipEngine",
@@ -24,4 +27,7 @@ __all__ = [
     "token_status",
     "bridge",
     "personas",
+    "bridge_jobs",
+    "self_improve",
+    "sentinel",
 ]

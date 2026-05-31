@@ -63,7 +63,7 @@ def page(status: dict[str, Any]) -> str:
     status_label = proposal.get("status", "idle")
     proposal_text = proposal.get("proposal", "Pip is resting. Tap Run Scan to wake her.")
     
-    import pip_config
+    from . import pip_config
     memory_path = pip_config.get_memory_path()
     
     # Load apps
@@ -947,7 +947,7 @@ class PipHandler(BaseHTTPRequestHandler):
             elif parsed.path == "/status":
                 self.send_json(export_control_status(self.workspace_key, self.manifest_path))
             elif parsed.path == "/apps":
-                import pip_evolution
+                from . import pip_evolution
                 self.send_json(pip_evolution.load_apps())
             elif parsed.path == "/proposal/latest":
                 status = export_control_status(self.workspace_key, self.manifest_path)
@@ -1070,11 +1070,11 @@ class PipHandler(BaseHTTPRequestHandler):
                         )
                 self.redirect_home()
             elif parsed.path == "/apps/scan":
-                import pip_app_scanner
+                from . import pip_app_scanner
                 pip_app_scanner.scan_and_save()
                 self.redirect_home()
             elif parsed.path == "/hardware/scan":
-                import pip_hardware_scanner
+                from . import pip_hardware_scanner
                 pip_hardware_scanner.scan_and_save(optimize=False)
                 self.redirect_home()
             elif parsed.path == "/developer-shells/bootstrap":
@@ -1082,7 +1082,7 @@ class PipHandler(BaseHTTPRequestHandler):
                 self.redirect_home()
             elif parsed.path == "/save-apps":
                 form = self.read_body()
-                import pip_evolution
+                from . import pip_evolution
                 apps = pip_evolution.load_apps()
                 for app in apps:
                     field_name = f"app_{app['name']}"
@@ -1111,7 +1111,7 @@ if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
                         **pip_platform.hidden_subprocess_kwargs(),
                     ).strip()
                     if out:
-                        import pip_config
+                        from . import pip_config
                         pip_config.set_memory_path(out)
                 except Exception as e:
                     print(f"Folder selection error: {e}")
@@ -1238,7 +1238,7 @@ if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
                     )
                     self.send_json({"response": assessment["nudge"], "token_governor": assessment})
                     return
-                from pip_engine import PipEngine
+                from .pip_engine import PipEngine
                 engine = PipEngine()
                 try:
                     response = engine.generate_chat_response(msg)

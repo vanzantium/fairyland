@@ -221,7 +221,7 @@ def apply_phone_feedback(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def list_jobs(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_jobs
+    from . import pip_jobs
     return {
         "skill": "list_jobs",
         "jobs": pip_jobs.list_jobs(),
@@ -229,7 +229,7 @@ def list_jobs(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def stop_job(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_jobs
+    from . import pip_jobs
     return {
         "skill": "stop_job",
         "result": pip_jobs.request_stop(args.job_id or ""),
@@ -237,7 +237,7 @@ def stop_job(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def inspect_app_skills(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_app_skills
+    from . import pip_app_skills
     return {
         "skill": "inspect_app_skills",
         "assessment": pip_app_skills.assess_app(args.app or "Blender"),
@@ -245,7 +245,7 @@ def inspect_app_skills(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def award_app_skill_xp(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_app_skills
+    from . import pip_app_skills
     app = pip_app_skills.award_app_xp(
         args.app or "Blender",
         int(args.amount or 10),
@@ -259,7 +259,7 @@ def award_app_skill_xp(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def bootstrap_developer_shells(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_app_skills
+    from . import pip_app_skills
     return {
         "skill": "bootstrap_developer_shells",
         "result": pip_app_skills.bootstrap_developer_shells(write_personas=True),
@@ -267,7 +267,7 @@ def bootstrap_developer_shells(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def inspect_developer_shells(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_app_skills
+    from . import pip_app_skills
     return {
         "skill": "inspect_developer_shells",
         "result": pip_app_skills.inspect_developer_shells(args.shell),
@@ -275,7 +275,7 @@ def inspect_developer_shells(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def list_blender_recipes(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_blender_recipes
+    from . import pip_blender_recipes
     return {
         "skill": "list_blender_recipes",
         "recipes": pip_blender_recipes.list_recipes(),
@@ -283,7 +283,7 @@ def list_blender_recipes(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def draft_blender_recipe(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_blender_recipes
+    from . import pip_blender_recipes
     return {
         "skill": "draft_blender_recipe",
         "draft": pip_blender_recipes.draft_recipe(
@@ -295,7 +295,7 @@ def draft_blender_recipe(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def record_blender_recipe_result(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_blender_recipes
+    from . import pip_blender_recipes
     return {
         "skill": "record_blender_recipe_result",
         "result": pip_blender_recipes.record_result(
@@ -307,7 +307,7 @@ def record_blender_recipe_result(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def inspect_token_governor(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_token_guard
+    from . import pip_token_guard
     return {
         "skill": "inspect_token_governor",
         "status": pip_token_guard.status(),
@@ -315,7 +315,7 @@ def inspect_token_governor(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def govern_interaction(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_token_guard
+    from . import pip_token_guard
     text = args.content or args.query or ""
     return {
         "skill": "govern_interaction",
@@ -329,7 +329,7 @@ def govern_interaction(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def record_token_event(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_token_guard
+    from . import pip_token_guard
     return {
         "skill": "record_token_event",
         "status": pip_token_guard.record_event(
@@ -343,7 +343,7 @@ def record_token_event(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def inspect_platform(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_platform
+    from . import pip_platform
     return {
         "skill": "inspect_platform",
         "platform": pip_platform.feature_status(),
@@ -456,8 +456,8 @@ def resolve_permission(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def trigger_pc_focus_mode(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_safety
-    import pip_platform
+    from . import pip_safety
+    from . import pip_platform
     blocked = pip_safety.gate_skill(
         "trigger_pc_focus_mode",
         args,
@@ -524,7 +524,7 @@ def run_pc_optimizer(args: argparse.Namespace) -> dict[str, Any]:
 def search_brain(args: argparse.Namespace) -> dict[str, Any]:
     query = (getattr(args, "query", "") or "")
     try:
-        import pip_hound
+        from . import pip_hound
         results = pip_hound.search(query)
         return {
             "skill": "search_brain",
@@ -538,7 +538,7 @@ def search_brain(args: argparse.Namespace) -> dict[str, Any]:
 
 def assess_hardware(args: argparse.Namespace) -> dict[str, Any]:
     try:
-        import pip_hardware
+        from . import pip_hardware
         result = pip_hardware.assess_hardware()
         return {
             "skill": "assess_hardware",
@@ -551,7 +551,7 @@ def assess_hardware(args: argparse.Namespace) -> dict[str, Any]:
 def generate_capsule(args: argparse.Namespace) -> dict[str, Any]:
     query = (getattr(args, "query", "") or "")
     try:
-        import pip_hound
+        from . import pip_hound
         out = pip_hound.capsule(query)
         if out:
             return {"skill": "generate_capsule", "ok": True, "capsule_path": out}
@@ -560,7 +560,7 @@ def generate_capsule(args: argparse.Namespace) -> dict[str, Any]:
         return {"skill": "generate_capsule", "ok": False, "message": str(e)}
 
 def read_brain_file(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_config
+    from . import pip_config
     brain_dir = pip_config.get_memory_path()
     target = getattr(args, "filename", "")
     results = list(brain_dir.rglob(target))
@@ -579,7 +579,7 @@ def read_brain_file(args: argparse.Namespace) -> dict[str, Any]:
         return {"skill": "read_brain_file", "ok": False, "message": str(e)}
 
 def write_brain_file(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_config
+    from . import pip_config
     brain_dir = pip_config.get_memory_path().resolve()
     target = (brain_dir / getattr(args, "filename", "new_brain_file.txt")).resolve()
     
@@ -600,7 +600,7 @@ def write_brain_file(args: argparse.Namespace) -> dict[str, Any]:
         return {"skill": "write_brain_file", "ok": False, "message": str(e)}
 
 def run_python_script(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_safety
+    from . import pip_safety
     blocked = pip_safety.gate_skill(
         "run_python_script",
         args,
@@ -610,7 +610,7 @@ def run_python_script(args: argparse.Namespace) -> dict[str, Any]:
         return blocked
 
     import subprocess
-    import pip_config
+    from . import pip_config
     import sys
     from pathlib import Path
     
@@ -658,7 +658,7 @@ def run_python_script(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def hands_type_text(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_safety
+    from . import pip_safety
     blocked = pip_safety.gate_skill(
         "hands_type_text",
         args,
@@ -668,8 +668,8 @@ def hands_type_text(args: argparse.Namespace) -> dict[str, Any]:
         return blocked
 
     try:
-        import pip_hands
-        import pip_evolution
+        from . import pip_hands
+        from . import pip_evolution
     except ImportError:
         return {"skill": "hands_type_text", "ok": False, "message": "Module not found."}
     
@@ -684,7 +684,7 @@ def hands_type_text(args: argparse.Namespace) -> dict[str, Any]:
     return {"skill": "hands_type_text", "ok": False, "message": "Typing failed or failsafe triggered."}
 
 def hands_press_key(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_safety
+    from . import pip_safety
     blocked = pip_safety.gate_skill(
         "hands_press_key",
         args,
@@ -694,8 +694,8 @@ def hands_press_key(args: argparse.Namespace) -> dict[str, Any]:
         return blocked
 
     try:
-        import pip_hands
-        import pip_evolution
+        from . import pip_hands
+        from . import pip_evolution
     except ImportError:
         return {"skill": "hands_press_key", "ok": False, "message": "Module not found."}
     
@@ -710,7 +710,7 @@ def hands_press_key(args: argparse.Namespace) -> dict[str, Any]:
     return {"skill": "hands_press_key", "ok": False, "message": "Key press failed or failsafe triggered."}
 
 def hands_click_mouse(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_safety
+    from . import pip_safety
     blocked = pip_safety.gate_skill(
         "hands_click_mouse",
         args,
@@ -720,8 +720,8 @@ def hands_click_mouse(args: argparse.Namespace) -> dict[str, Any]:
         return blocked
 
     try:
-        import pip_hands
-        import pip_evolution
+        from . import pip_hands
+        from . import pip_evolution
     except ImportError:
         return {"skill": "hands_click_mouse", "ok": False, "message": "Module not found."}
     
@@ -740,7 +740,7 @@ def hands_click_mouse(args: argparse.Namespace) -> dict[str, Any]:
     return {"skill": "hands_click_mouse", "ok": False, "message": "Click failed."}
 
 def record_new_macro(args: argparse.Namespace) -> dict[str, Any]:
-    import pip_safety
+    from . import pip_safety
     blocked = pip_safety.gate_skill(
         "record_new_macro",
         args,
@@ -750,7 +750,7 @@ def record_new_macro(args: argparse.Namespace) -> dict[str, Any]:
         return blocked
 
     try:
-        import pip_hands
+        from . import pip_hands
     except ImportError:
         return {"skill": "record_new_macro", "ok": False, "message": "pip_hands module not found."}
     
@@ -761,7 +761,7 @@ def record_new_macro(args: argparse.Namespace) -> dict[str, Any]:
     if not events:
         return {"skill": "record_new_macro", "ok": False, "message": "No events recorded or recording failed."}
         
-    import pip_config
+    from . import pip_config
     import re
     brain_dir = pip_config.get_memory_path()
     name = re.sub(r"[^A-Za-z0-9_.-]+", "_", getattr(args, "name", "macro")).strip("._")
@@ -837,6 +837,62 @@ def bridge_get_history(args: argparse.Namespace) -> dict[str, Any]:
         "entries": history,
         "count": len(history),
     }
+
+
+# ---------------------------------------------------------------------------
+# Background bridge jobs + self-improvement + sentinel
+# ---------------------------------------------------------------------------
+
+def bridge_job_send(args: argparse.Namespace) -> dict[str, Any]:
+    from . import pip_bridge_jobs
+    persona = getattr(args, "persona", "")
+    task = getattr(args, "task", "")
+    wait_s = getattr(args, "wait_s", None)
+    if not persona or not task:
+        return {"skill": "bridge_job_send", "ok": False, "message": "Provide --persona and --task"}
+    if wait_s is not None:
+        wait_s = float(wait_s)
+    job = pip_bridge_jobs.queue_bridge_task(persona, task, wait_s=wait_s)
+    return {"skill": "bridge_job_send", **job}
+
+
+def bridge_job_improve(args: argparse.Namespace) -> dict[str, Any]:
+    from . import pip_bridge_jobs
+    persona = getattr(args, "persona", "")
+    task = getattr(args, "task", "")
+    wait_s = getattr(args, "wait_s", None)
+    if not persona or not task:
+        return {"skill": "bridge_job_improve", "ok": False, "message": "Provide --persona and --task"}
+    if wait_s is not None:
+        wait_s = float(wait_s)
+    job = pip_bridge_jobs.queue_self_improving_task(persona, task, wait_s=wait_s)
+    return {"skill": "bridge_job_improve", **job}
+
+
+def bridge_job_results(args: argparse.Namespace) -> dict[str, Any]:
+    from . import pip_bridge_jobs
+    return {
+        "skill": "bridge_job_results",
+        "ok": True,
+        "results": pip_bridge_jobs.list_results()[-10:],
+        "status": pip_bridge_jobs.status(),
+    }
+
+
+def inspect_strategy_memory(args: argparse.Namespace) -> dict[str, Any]:
+    from . import pip_self_improve
+    return {"skill": "inspect_strategy_memory", "ok": True, **pip_self_improve.status()}
+
+
+def inspect_sentinel(args: argparse.Namespace) -> dict[str, Any]:
+    from . import pip_sentinel
+    return {"skill": "inspect_sentinel", "ok": True, **pip_sentinel.status()}
+
+
+def sentinel_reauthorize(args: argparse.Namespace) -> dict[str, Any]:
+    from . import pip_sentinel
+    out = pip_sentinel.reauthorize()
+    return {"skill": "sentinel_reauthorize", **out}
 
 
 SKILLS: dict[str, tuple[SkillSpec, Callable[[argparse.Namespace], dict[str, Any]]]] = {
@@ -1319,6 +1375,66 @@ SKILLS: dict[str, tuple[SkillSpec, Callable[[argparse.Namespace], dict[str, Any]
             permissions=["read session state"],
         ),
         bridge_get_history,
+    ),
+    "bridge_job_send": (
+        SkillSpec(
+            name="bridge_job_send",
+            description="Run a text-bridge task in the background (gated by the sentinel's security posture).",
+            inputs=["--persona claude|codex|anti", "--task 'text'", "--wait-s 30"],
+            outputs=["background job; result lands in bridge_results.json"],
+            permissions=["ui_automation", "background_job", "sentinel_gated"],
+        ),
+        bridge_job_send,
+    ),
+    "bridge_job_improve": (
+        SkillSpec(
+            name="bridge_job_improve",
+            description="Run a self-improving (decompose/score/retry) bridge task in the background.",
+            inputs=["--persona claude|codex|anti", "--task 'text'", "--wait-s 30"],
+            outputs=["background job; scored result in bridge_results.json"],
+            permissions=["ui_automation", "background_job", "sentinel_gated"],
+        ),
+        bridge_job_improve,
+    ),
+    "bridge_job_results": (
+        SkillSpec(
+            name="bridge_job_results",
+            description="Show recent background bridge job results and strategy/sentinel status.",
+            inputs=[],
+            outputs=["recent results + bridge status"],
+            permissions=["read job results"],
+        ),
+        bridge_job_results,
+    ),
+    "inspect_strategy_memory": (
+        SkillSpec(
+            name="inspect_strategy_memory",
+            description="Show what Pip has learned about how to phrase tasks per task-type.",
+            inputs=[],
+            outputs=["strategy memory summary"],
+            permissions=["read strategy memory"],
+        ),
+        inspect_strategy_memory,
+    ),
+    "inspect_sentinel": (
+        SkillSpec(
+            name="inspect_sentinel",
+            description="Show the security posture, behavioral fingerprint maturity, and recent flags.",
+            inputs=[],
+            outputs=["sentinel status"],
+            permissions=["read sentinel state"],
+        ),
+        inspect_sentinel,
+    ),
+    "sentinel_reauthorize": (
+        SkillSpec(
+            name="sentinel_reauthorize",
+            description="Owner confirms identity — reset security posture to CALM. Use only from an explicit owner action.",
+            inputs=[],
+            outputs=["reset posture"],
+            permissions=["owner_action"],
+        ),
+        sentinel_reauthorize,
     ),
 }
 

@@ -65,7 +65,7 @@ def award_xp(app_name: str, amount: int = 10) -> dict[str, Any]:
     save_apps(apps)
 
     try:
-        import pip_app_skills
+        from . import pip_app_skills
         pip_app_skills.award_app_xp(app_name, amount, evidence="XP awarded through Pip app interaction.")
     except Exception:
         pass

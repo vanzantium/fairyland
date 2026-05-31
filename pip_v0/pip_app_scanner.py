@@ -109,7 +109,7 @@ def get_installed_apps() -> list[dict]:
 
 def scan_and_save():
     apps = get_installed_apps()
-    import pip_config
+    from . import pip_config
     mem_dir = pip_config.get_memory_path()
     
     out_file = mem_dir / "apps.json"

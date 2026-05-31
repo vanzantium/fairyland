@@ -42,7 +42,7 @@ def start_ollama_background():
         print("Failed to start Ollama in background:", e)
 
 try:
-    import pip_pc_tracker
+    from . import pip_pc_tracker
     _TRACKER_AVAILABLE = True
 except ImportError:
     _TRACKER_AVAILABLE = False
