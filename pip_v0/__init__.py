@@ -15,6 +15,7 @@ from . import pip_personas as personas
 from . import pip_bridge_jobs as bridge_jobs
 from . import pip_self_improve as self_improve
 from . import pip_sentinel as sentinel
+from . import pip_inference as inference
 
 __all__ = [
     "PipEngine",
@@ -30,4 +31,5 @@ __all__ = [
     "bridge_jobs",
     "self_improve",
     "sentinel",
+    "inference",
 ]

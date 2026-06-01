@@ -30,6 +30,8 @@ from .pip_safety import request_safety_permission
 from . import pip_app_skills
 from . import pip_blender_recipes
 from . import pip_bridge_jobs
+from . import pip_config
+from . import pip_inference
 from . import pip_jobs
 from . import pip_platform
 from . import pip_self_improve
@@ -314,6 +316,18 @@ def page(status: dict[str, Any]) -> str:
     if not strat_html:
         strat_html = "<p class='small'>No strategies learned yet. Run a self-improving bridge task to build strategy memory.</p>"
 
+    infer_status = pip_inference.status()
+    infer_caps = infer_status.get("capabilities", {})
+    infer_preferred = html.escape(infer_status.get("preferred_source", "none"))
+    infer_source_colors = {"local": "#10b981", "bridge": "#f59e0b", "cloud": "#8b5cf6", "none": "#94a3b8"}
+    infer_color = infer_source_colors.get(infer_preferred, "#94a3b8")
+    infer_backend = html.escape(str(infer_caps.get("backend", "")))
+    infer_base_url = html.escape(str(infer_caps.get("base_url", "")))
+    infer_model = html.escape(str(infer_caps.get("model", "")))
+    infer_local = infer_caps.get("local", False)
+    infer_bridge = infer_caps.get("bridge", False)
+    infer_cloud = infer_caps.get("cloud_allowed", False)
+
     developer_shells = pip_app_skills.inspect_developer_shells().get("shells", [])
     shell_cards = ""
     for shell in developer_shells:
@@ -510,6 +524,36 @@ def page(status: dict[str, Any]) -> str:
     <div class="scroll-box" style="max-height:250px;margin-top:10px;">
       {strat_html}
     </div>
+  </section>
+
+  <section class="card">
+    <h2>Inference Layer</h2>
+    <span class="pill" style="background:{infer_color};color:white;">Using: {infer_preferred}</span>
+    <span class="pill">Local: {'ready' if infer_local else 'off'}</span>
+    <span class="pill">Bridge: {'ready' if infer_bridge else 'paused'}</span>
+    <span class="pill">Cloud: {'opt-in' if infer_cloud else 'off'}</span>
+    <p class="small" style="margin-top:10px;">
+      Pip prefers a <strong>local</strong> model (free, private, offline), falls back to the
+      <strong>text bridge</strong>, and only uses paid <strong>cloud</strong> APIs if you opt in.
+      The backend is OpenAI-compatible, so it works with llama.cpp, LM Studio, Jan, or Ollama.
+    </p>
+    <form method="post" action="/inference/config" style="display:grid;gap:8px;margin-top:10px;">
+      <label class="small">Backend
+        <select name="backend" style="width:100%;border-radius:8px;padding:8px;">
+          <option value="openai_compat" {'selected' if infer_backend == 'openai_compat' else ''}>OpenAI-compatible (llama.cpp / LM Studio / Jan / Ollama)</option>
+          <option value="ollama" {'selected' if infer_backend == 'ollama' else ''}>Ollama (native API)</option>
+          <option value="none" {'selected' if infer_backend == 'none' else ''}>None (heuristics only)</option>
+        </select>
+      </label>
+      <label class="small">Base URL
+        <input type="text" name="base_url" value="{infer_base_url}" placeholder="http://127.0.0.1:11434/v1" style="width:100%;border-radius:8px;padding:8px;">
+      </label>
+      <label class="small">Model
+        <input type="text" name="model" value="{infer_model}" placeholder="qwen2.5:0.5b" style="width:100%;border-radius:8px;padding:8px;">
+      </label>
+      <button type="submit">Save Inference Settings</button>
+    </form>
+    <p class="small" style="margin-top:8px;">On a phone? See <code>TERMUX_PHONE_SETUP.md</code> to run Pip's whole brain on-device.</p>
   </section>
 
   <section class="card">
@@ -1089,6 +1133,8 @@ class PipHandler(BaseHTTPRequestHandler):
                 self.send_json(pip_bridge_jobs.status())
             elif parsed.path == "/strategy-memory":
                 self.send_json(pip_self_improve.status())
+            elif parsed.path == "/inference":
+                self.send_json(pip_inference.status())
             elif parsed.path == "/platform":
                 self.send_json(pip_platform.feature_status())
             elif parsed.path == "/phone/status":
@@ -1308,6 +1354,14 @@ if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
                 self.redirect_home()
             elif parsed.path == "/sentinel/reauthorize":
                 pip_sentinel.reauthorize()
+                self.redirect_home()
+            elif parsed.path == "/inference/config":
+                form = self.read_body()
+                pip_config.set_llm_config(
+                    backend=(form.get("backend") or ["openai_compat"])[0],
+                    base_url=(form.get("base_url") or [""])[0],
+                    model=(form.get("model") or [""])[0],
+                )
                 self.redirect_home()
             elif parsed.path == "/phone/usage-import":
                 content_type = self.headers.get("Content-Type", "")

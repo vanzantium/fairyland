@@ -172,9 +172,10 @@ def queue_self_improving_task(
         model_fn = None
         if use_local_model:
             try:
-                model_fn = pip_self_improve.ollama_model_fn()
-                # cheap reachability probe
-                model_fn("ping")
+                model_fn = pip_self_improve.local_model_fn()
+                if model_fn is not None:
+                    # cheap reachability probe
+                    model_fn("ping")
             except Exception:
                 model_fn = None
                 pip_jobs.append_log(job_id, "No local model; using heuristic decomposition.")

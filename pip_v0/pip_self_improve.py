@@ -351,7 +351,7 @@ def _record_strategy(
 # ---------------------------------------------------------------------------
 
 def ollama_model_fn(model: str = "qwen2.5:0.5b", timeout: int = 60) -> Callable[[str], str]:
-    """Build a model_fn backed by a local Ollama instance (best-effort)."""
+    """Build a model_fn backed by a local Ollama instance via its native API."""
     import urllib.request
 
     def call(prompt: str) -> str:
@@ -370,6 +370,70 @@ def ollama_model_fn(model: str = "qwen2.5:0.5b", timeout: int = 60) -> Callable[
             return res.get("message", {}).get("content", "")
 
     return call
+
+
+def openai_compat_model_fn(
+    base_url: str = "http://127.0.0.1:11434/v1",
+    model: str = "qwen2.5:0.5b",
+    api_key: str = "",
+    timeout: int = 60,
+) -> Callable[[str], str]:
+    """
+    Build a model_fn backed by ANY OpenAI-compatible /v1 endpoint.
+
+    This is the backend-agnostic path: the same function talks to llama.cpp's
+    llama-server, LM Studio, Jan, or Ollama (all of which serve
+    /v1/chat/completions). Lets Pip use whatever local model the user already
+    has running, with no paid API.
+    """
+    import urllib.request
+
+    url = base_url.rstrip("/") + "/chat/completions"
+
+    def call(prompt: str) -> str:
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "stream": False,
+        }
+        headers = {"Content-Type": "application/json"}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        req = urllib.request.Request(
+            url, data=json.dumps(data).encode("utf-8"), headers=headers,
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            res = json.loads(resp.read().decode("utf-8"))
+            choices = res.get("choices", [])
+            if choices:
+                return choices[0].get("message", {}).get("content", "")
+            return ""
+
+    return call
+
+
+def local_model_fn() -> Optional[Callable[[str], str]]:
+    """
+    Resolve the user's configured local model into a model_fn.
+
+    Honors pip_config.get_llm_config(): the OpenAI-compatible adapter is the
+    default so it works across backends; "ollama" forces the native API;
+    "none" disables local inference (Pip falls back to heuristics / the bridge).
+    Returns None when no local backend is configured.
+    """
+    cfg = pip_config.get_llm_config()
+    backend = cfg.get("backend", "openai_compat")
+    timeout = int(cfg.get("timeout_s", 60))
+    if backend == "none":
+        return None
+    if backend == "ollama":
+        return ollama_model_fn(model=cfg.get("model", "qwen2.5:0.5b"), timeout=timeout)
+    return openai_compat_model_fn(
+        base_url=cfg.get("base_url", "http://127.0.0.1:11434/v1"),
+        model=cfg.get("model", "qwen2.5:0.5b"),
+        api_key=cfg.get("api_key", ""),
+        timeout=timeout,
+    )
 
 
 def status() -> dict[str, Any]:
