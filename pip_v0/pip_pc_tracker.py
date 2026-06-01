@@ -23,6 +23,7 @@ import urllib.error
 from pathlib import Path
 
 from . import pip_platform
+from . import pip_sentinel
 
 # ── config ────────────────────────────────────────────────────────────────────
 POLL_SECONDS    = 5
@@ -126,6 +127,14 @@ def _run():
             duration = int(now - session_start)
             if current_app and duration >= MIN_SESSION_SEC:
                 pending_events.append(_make_event(current_app, duration))
+                try:
+                    pip_sentinel.observe(
+                        persona="pc_tracker",
+                        task=f"using {current_app}",
+                        interval_s=float(duration),
+                    )
+                except Exception:
+                    pass
             current_app   = app
             session_start = now
 

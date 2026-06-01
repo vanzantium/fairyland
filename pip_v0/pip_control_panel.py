@@ -29,8 +29,11 @@ from .pip_workspace import (
 from .pip_safety import request_safety_permission
 from . import pip_app_skills
 from . import pip_blender_recipes
+from . import pip_bridge_jobs
 from . import pip_jobs
 from . import pip_platform
+from . import pip_self_improve
+from . import pip_sentinel
 from . import pip_token_guard
 
 
@@ -238,6 +241,79 @@ def page(status: dict[str, Any]) -> str:
         </div>
         """
 
+    sentinel_st = pip_sentinel.status()
+    sentinel_posture = html.escape(sentinel_st.get("posture", "CALM"))
+    sentinel_cold = sentinel_st.get("cold_start", True)
+    sentinel_samples = sentinel_st.get("samples", 0)
+    sentinel_anomaly = sentinel_st.get("last_anomaly", 0.0)
+    sentinel_autonomy = sentinel_st.get("autonomy_allowed", True)
+    sentinel_consec = sentinel_st.get("consecutive_anomalies", 0)
+
+    posture_colors = {"CALM": "#10b981", "WATCH": "#f59e0b", "GUARD": "#f97316", "LOCK": "#ef4444"}
+    posture_color = posture_colors.get(sentinel_posture, "#10b981")
+    posture_icons = {"CALM": "&#x2714;", "WATCH": "&#x1F441;", "GUARD": "&#x1F6E1;", "LOCK": "&#x1F512;"}
+    posture_icon = posture_icons.get(sentinel_posture, "")
+
+    sentinel_flags_html = ""
+    for flag in sentinel_st.get("recent_flags", [])[-5:]:
+        at = html.escape(str(flag.get("at", "")))
+        anom = flag.get("anomaly", 0.0)
+        fposture = html.escape(str(flag.get("posture", "")))
+        fpersona = html.escape(str(flag.get("persona", "")))
+        event = html.escape(str(flag.get("event", "")))
+        if event:
+            sentinel_flags_html += f"""
+            <div class="small" style="display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;">
+              <span>{event}</span><span>{at}</span>
+            </div>"""
+        else:
+            sentinel_flags_html += f"""
+            <div class="small" style="display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;">
+              <span>{fpersona or 'unknown'} &mdash; anomaly {anom:.2f} &rarr; {fposture}</span><span>{at}</span>
+            </div>"""
+    if not sentinel_flags_html:
+        sentinel_flags_html = "<p class='small'>No security flags raised.</p>"
+
+    bridge_results = pip_bridge_jobs.list_results()[-5:]
+    bridge_cards = ""
+    for br in reversed(bridge_results):
+        bkind = html.escape(br.get("kind", "bridge_task"))
+        bpersona = html.escape(br.get("persona", ""))
+        btask = html.escape(br.get("task", "")[:80])
+        bok = br.get("ok", False)
+        bscore = br.get("score")
+        bresp_len = br.get("response_length", 0)
+        belapsed = br.get("elapsed_s", 0)
+        bfinished = html.escape(br.get("finished_at", ""))
+        status_label = "ok" if bok else "failed"
+        score_part = f" | score: {bscore:.2f}" if bscore is not None else ""
+        bridge_cards += f"""
+        <div style="margin-bottom:10px;padding:10px;background:rgba(255,255,255,.55);border-radius:12px;">
+          <p style="margin:0 0 4px 0;"><strong>{bpersona}</strong>: {btask}</p>
+          <p class="small" style="margin:0;">{bkind} | {status_label}{score_part} | {bresp_len} chars | {belapsed:.1f}s | {bfinished}</p>
+        </div>"""
+    if not bridge_cards:
+        bridge_cards = "<p class='small'>No bridge tasks completed yet. Use the text bridge to send tasks to external tools.</p>"
+
+    strat_status = pip_self_improve.status()
+    strat_types = strat_status.get("task_types_learned", [])
+    strat_total = strat_status.get("total_strategies", 0)
+    strat_top = strat_status.get("top_strategies", {})
+    strat_html = ""
+    for ttype, items in strat_top.items():
+        strat_html += f"""<p style="margin:0 0 4px 0;"><strong>{html.escape(ttype)}</strong></p>"""
+        for it in items:
+            framing = html.escape(it.get("framing", "")[:70])
+            sc = it.get("score", 0.0)
+            uses = it.get("uses", 0)
+            strat_html += f"""
+            <div class="small" style="display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;">
+              <span>{framing}</span>
+              <span>score {sc:.2f} ({uses} uses)</span>
+            </div>"""
+    if not strat_html:
+        strat_html = "<p class='small'>No strategies learned yet. Run a self-improving bridge task to build strategy memory.</p>"
+
     developer_shells = pip_app_skills.inspect_developer_shells().get("shells", [])
     shell_cards = ""
     for shell in developer_shells:
@@ -397,6 +473,42 @@ def page(status: dict[str, Any]) -> str:
     <p class="small"><strong>Signal bridge:</strong> {gov_signal}</p>
     <div class="scroll-box" style="max-height:150px;">
       {gov_events}
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Security Sentinel</h2>
+    <span class="pill" style="background:{posture_color};color:white;">{posture_icon} {sentinel_posture}</span>
+    <span class="pill">{'Cold start' if sentinel_cold else f'{sentinel_samples} samples learned'}</span>
+    <span class="pill">{'Autonomy: ON' if sentinel_autonomy else 'Autonomy: BLOCKED'}</span>
+    <p class="small" style="margin-top:10px;">
+      Pip tunes to your rhythm. If someone else uses this machine, she will notice and lock down.
+      {'<br><strong>Last anomaly score:</strong> ' + f'{sentinel_anomaly:.2f}' if not sentinel_cold else ''}
+      {'<br><strong>Consecutive anomalies:</strong> ' + str(sentinel_consec) if sentinel_consec > 0 else ''}
+    </p>
+    <div class="scroll-box" style="max-height:150px;margin-top:10px;">
+      {sentinel_flags_html}
+    </div>
+    {'<form method="post" action="/sentinel/reauthorize" style="margin-top:12px;"><button class="secondary" type="submit">Confirm It&#39;s Me (Reauthorize)</button></form>' if not sentinel_autonomy else ''}
+  </section>
+
+  <section class="card">
+    <h2>Bridge Results</h2>
+    <p class="small">Tasks Pip has sent to external tools (Claude Code, Codex, etc.) via the text bridge, and their outcomes.</p>
+    <div class="scroll-box" style="max-height:300px;">
+      {bridge_cards}
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Strategy Memory</h2>
+    <span class="pill">{strat_total} strategies</span>
+    <span class="pill">{len(strat_types)} task types</span>
+    <p class="small" style="margin-top:10px;">
+      Pip learns how to ASK better over time. Each strategy is a phrasing that worked for a task type, scored by how well the tool's response hit the checkable subgoals.
+    </p>
+    <div class="scroll-box" style="max-height:250px;margin-top:10px;">
+      {strat_html}
     </div>
   </section>
 
@@ -971,6 +1083,12 @@ class PipHandler(BaseHTTPRequestHandler):
                 self.send_json(pip_blender_recipes.list_recipes())
             elif parsed.path == "/token-governor":
                 self.send_json(pip_token_guard.status())
+            elif parsed.path == "/sentinel/status":
+                self.send_json(pip_sentinel.status())
+            elif parsed.path == "/bridge-jobs/status":
+                self.send_json(pip_bridge_jobs.status())
+            elif parsed.path == "/strategy-memory":
+                self.send_json(pip_self_improve.status())
             elif parsed.path == "/platform":
                 self.send_json(pip_platform.feature_status())
             elif parsed.path == "/phone/status":
@@ -1187,6 +1305,9 @@ if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
                         saved_tokens=assessment["estimated_tokens"],
                         note=f"Blocked by Token Governor: {assessment['reason']}",
                     )
+                self.redirect_home()
+            elif parsed.path == "/sentinel/reauthorize":
+                pip_sentinel.reauthorize()
                 self.redirect_home()
             elif parsed.path == "/phone/usage-import":
                 content_type = self.headers.get("Content-Type", "")
