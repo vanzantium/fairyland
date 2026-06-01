@@ -104,7 +104,7 @@ def main() -> None:
 
     try:
         sys.path.insert(0, str(root))
-        from pip_workspace import classify_action_permission
+        from .pip_workspace import classify_action_permission
 
         for action_type in [
             "autonomous_goal",
@@ -131,7 +131,7 @@ def main() -> None:
         failures.append(f"dashboard source consistency check failed: {exc}")
 
     try:
-        import pip_platform
+        from . import pip_platform
         platform_status = pip_platform.feature_status()
         required_feature_keys = {"control_panel", "token_governor", "hardware_scan", "installed_app_scan"}
         missing = required_feature_keys.difference(platform_status.get("features", {}))
@@ -141,7 +141,7 @@ def main() -> None:
         failures.append(f"platform compatibility check failed: {exc}")
 
     try:
-        import pip_app_skills
+        from . import pip_app_skills
         shells = pip_app_skills.inspect_developer_shells().get("shells", [])
         shell_names = {shell.get("name") for shell in shells}
         expected_shells = {"Codex", "Claude Code", "Antigravity"}
@@ -155,9 +155,9 @@ def main() -> None:
         failures.append(f"developer shell consistency check failed: {exc}")
 
     try:
-        import pip_config
-        import pip_token_guard
-        import pip_jobs
+        from . import pip_config
+        from . import pip_token_guard
+        from . import pip_jobs
 
         original_memory_path = pip_config.get_memory_path
         with tempfile.TemporaryDirectory() as temp_dir:

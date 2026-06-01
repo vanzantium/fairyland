@@ -8,6 +8,7 @@ from typing import Any
 
 from .pip_engine import PipEngine
 from .pip_phone_bridge import read_json_if_exists, utc_now, validate_usage_events, write_json
+from . import pip_sentinel
 
 
 ROOT = Path(__file__).resolve().parent
@@ -34,6 +35,10 @@ def run_pc_optimizer(
     status_path: Path = DEFAULT_STATUS_PATH,
     feedback: str | None = None,
 ) -> dict[str, Any]:
+    try:
+        pip_sentinel.observe(persona="pc_bridge", task="pc usage optimization")
+    except Exception:
+        pass
     engine = PipEngine(memory_path=str(memory_path))
     result = engine.run(str(input_path), feedback=feedback)
     proposal = {

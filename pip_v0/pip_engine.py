@@ -601,28 +601,58 @@ class PipEngine:
 
         import urllib.request
         import json
-        
+
+        # Sentinel: learn the owner's rhythm and read the current posture.
+        # Powerful routes (@persona handoff, /goal autonomy) require a posture
+        # that still looks like the owner.
+        posture = "CALM"
+        try:
+            from . import pip_sentinel
+            persona_hint = ""
+            if message.strip().startswith("@"):
+                persona_hint = message.strip().split(" ", 1)[0][1:]
+            obs = pip_sentinel.observe(persona=persona_hint, task=message)
+            posture = obs.get("posture", "CALM")
+        except Exception:
+            posture = "CALM"
+
+        def _autonomy_ok() -> bool:
+            return posture in ("CALM", "WATCH")
+
         # Persona Task Routing (e.g., "@anti build me a script")
         if message.strip().startswith("@"):
             parts = message.strip().split(" ", 1)
             persona_name = parts[0][1:] # remove @
             task_text = parts[1] if len(parts) > 1 else ""
-            
+
+            if not _autonomy_ok():
+                return (
+                    f"I paused that tool handoff — your security posture is {posture}, "
+                    f"which doesn't match how you normally work. If this is really you, "
+                    f"run `sentinel_reauthorize` to confirm it's you, then try again."
+                )
+
             try:
-                import pip_personas
+                from . import pip_personas
                 result = pip_personas.dispatch_task(persona_name, task_text)
                 return result["message"]
             except Exception as e:
                 return f"Failed to route task to persona {persona_name}: {e}"
-                
+
         # Autonomous /goal Routing
         if message.strip().lower().startswith("/goal"):
             goal_text = message.strip()[5:].strip()
             if not goal_text:
                 return "You didn't give me a goal! Try `/goal do something for me`."
+
+            if not _autonomy_ok():
+                return (
+                    f"I won't start an autonomous goal right now — security posture is "
+                    f"{posture}. Run `sentinel_reauthorize` to confirm it's you first."
+                )
             
-            import pip_safety
-            import pip_token_guard
+            from . import pip_safety
+            from . import pip_token_guard
             assessment = pip_token_guard.assess_interaction(
                 goal_text,
                 intent="autonomous_goal",
@@ -651,13 +681,13 @@ class PipEngine:
         # Determine safest model and prompt strategy
         target_model = "gemma4:e4b" # fallback
         prompt_strategy_inject = ""
-        import pip_config
+        from . import pip_config
         from pathlib import Path
         import os
         try:
             hw_path = pip_config.get_memory_path() / "hardware.json"
             if not hw_path.exists():
-                import pip_hardware_scanner
+                from . import pip_hardware_scanner
                 pip_hardware_scanner.scan_and_save()
             with open(hw_path, "r", encoding="utf-8") as f:
                 hw = json.load(f)

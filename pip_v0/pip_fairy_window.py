@@ -11,8 +11,6 @@ Requirements:
   pip install pywebview
 """
 
-import ctypes
-import ctypes.wintypes as wt
 import os
 import subprocess
 import sys
@@ -22,8 +20,14 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
-import webview
 from . import pip_platform
+
+if not pip_platform.is_windows():
+    raise ImportError("pip_fairy_window requires Windows (pywebview + ctypes.wintypes)")
+
+import ctypes
+import ctypes.wintypes as wt
+import webview
 
 def start_ollama_background():
     """Silently spawn ollama serve in the background if it isn't running."""
@@ -38,7 +42,7 @@ def start_ollama_background():
         print("Failed to start Ollama in background:", e)
 
 try:
-    import pip_pc_tracker
+    from . import pip_pc_tracker
     _TRACKER_AVAILABLE = True
 except ImportError:
     _TRACKER_AVAILABLE = False

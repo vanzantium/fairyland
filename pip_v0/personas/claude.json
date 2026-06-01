@@ -2,9 +2,10 @@
   "name": "claude",
   "app_name": "Claude Code",
   "window_title": "Claude",
-  "description": "Claude Code developer shell. large-context planning, refactor reasoning, and code-review partner.",
+  "description": "Claude Code developer shell. Large-context planning, refactor reasoning, and code-review partner.",
   "shell_type": "developer_tool",
   "safety_mode": "approval_required_for_ui_handoff",
+  "response_wait_s": 30,
   "aliases": [
     "claude",
     "claude code",
@@ -20,25 +21,5 @@
     "Use for long-context synthesis, architecture review, and careful refactor planning.",
     "Prefer asking for tradeoffs and failure modes before implementation.",
     "Treat execution or app control as a separate permission-gated step."
-  ],
-  "macros": {
-    "focus_only": [
-      {
-        "action": "focus_window"
-      }
-    ],
-    "submit_task": [
-      {
-        "action": "focus_window"
-      },
-      {
-        "action": "type_text",
-        "source": "task_input"
-      },
-      {
-        "action": "press_key",
-        "key": "enter"
-      }
-    ]
-  }
+  ]
 }

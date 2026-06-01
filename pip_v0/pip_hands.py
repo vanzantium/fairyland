@@ -1,11 +1,14 @@
 """
 pip_hands.py - UI automation module for Pip.
 
-This module is intentionally best-effort across operating systems. PyAutoGUI can
-work on Windows/macOS/Linux if the host has the right accessibility/display
-permissions, while keyboard macro recording is currently treated as Windows-only.
+Handles typing, clicking, clipboard, and macro recording.
+PyAutoGUI works on Windows/macOS/Linux with the right display permissions.
+Clipboard uses tkinter (stdlib) so it works everywhere without extra installs.
+Macro recording is Windows-only via the keyboard library.
 """
 from __future__ import annotations
+
+import time
 
 from . import pip_platform
 
@@ -17,6 +20,10 @@ def _load_pyautogui():
     pyautogui.PAUSE = 0.1
     return pyautogui
 
+
+# ---------------------------------------------------------------------------
+# Typing & clicking
+# ---------------------------------------------------------------------------
 
 def type_text(text: str, interval: float = 0.05) -> bool:
     """Type text out like a human."""
@@ -40,6 +47,17 @@ def press_key(key: str) -> bool:
         return False
 
 
+def hotkey(*keys: str) -> bool:
+    """Press a key combination (e.g. 'ctrl', 'a')."""
+    try:
+        pyautogui = _load_pyautogui()
+        pyautogui.hotkey(*keys)
+        return True
+    except Exception as e:
+        print(f"[pip] Error pressing hotkey: {e}")
+        return False
+
+
 def click_mouse(x: int | None = None, y: int | None = None) -> bool:
     """Click at the current position or at specific coordinates."""
     try:
@@ -53,6 +71,64 @@ def click_mouse(x: int | None = None, y: int | None = None) -> bool:
         print(f"[pip] Error clicking: {e}")
         return False
 
+
+# ---------------------------------------------------------------------------
+# Clipboard (uses tkinter — no extra installs needed)
+# ---------------------------------------------------------------------------
+
+def read_clipboard() -> str:
+    """Read current clipboard text. Works on all platforms."""
+    try:
+        import tkinter as tk
+        root = tk.Tk()
+        root.withdraw()
+        try:
+            text = root.clipboard_get()
+        except tk.TclError:
+            text = ""
+        root.destroy()
+        return text
+    except Exception:
+        return ""
+
+
+def write_clipboard(text: str) -> bool:
+    """Write text to the clipboard. Works on all platforms."""
+    try:
+        import tkinter as tk
+        root = tk.Tk()
+        root.withdraw()
+        root.clipboard_clear()
+        root.clipboard_append(text)
+        root.update()
+        root.destroy()
+        return True
+    except Exception:
+        return False
+
+
+def select_all_and_copy() -> str:
+    """Select all content in the focused window and copy to clipboard."""
+    try:
+        pyautogui = _load_pyautogui()
+        if pip_platform.is_macos():
+            pyautogui.hotkey("command", "a")
+            time.sleep(0.2)
+            pyautogui.hotkey("command", "c")
+        else:
+            pyautogui.hotkey("ctrl", "a")
+            time.sleep(0.2)
+            pyautogui.hotkey("ctrl", "c")
+        time.sleep(0.3)
+        return read_clipboard()
+    except Exception as e:
+        print(f"[pip] Error selecting/copying: {e}")
+        return read_clipboard()
+
+
+# ---------------------------------------------------------------------------
+# Macro record & playback (Windows-only)
+# ---------------------------------------------------------------------------
 
 def record_macro(stop_key: str = "esc") -> list:
     """Record keystrokes until stop_key is pressed."""
