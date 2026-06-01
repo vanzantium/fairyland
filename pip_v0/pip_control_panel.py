@@ -59,6 +59,29 @@ def local_ip() -> str:
         return "127.0.0.1"
 
 
+_ASSET_EXTS = ("png", "jpg", "jpeg", "gif")
+
+
+def _bundled_asset(name: str):
+    """A read-only asset that ships alongside this module (cwd-independent)."""
+    from pathlib import Path
+    return Path(__file__).resolve().parent / name
+
+
+def _avatar_path(ext: str):
+    """The user's uploaded avatar, stored in the configurable memory folder."""
+    return pip_config.get_memory_path() / f"avatar.{ext}"
+
+
+def _find_avatar():
+    """Return the current avatar Path if one exists, else None."""
+    for ext in _ASSET_EXTS:
+        p = _avatar_path(ext)
+        if p.exists():
+            return p
+    return None
+
+
 def page(status: dict[str, Any]) -> str:
     import json
     from pathlib import Path
@@ -672,12 +695,7 @@ def page(status: dict[str, Any]) -> str:
 </html>"""
 
 def fairy_page() -> str:
-    from pathlib import Path
-    has_avatar = False
-    for ext in ["png", "jpg", "jpeg", "gif"]:
-        if Path(f"avatar.{ext}").exists():
-            has_avatar = True
-            break
+    has_avatar = _find_avatar() is not None
 
     if has_avatar:
         sprite_html = '<img class="sprite" id="fairy" src="/avatar" width="112" height="179" style="object-fit: contain; filter: drop-shadow(0 5px 14px rgba(16,185,129,0.5));" onclick="tap()">'
@@ -1142,23 +1160,18 @@ class PipHandler(BaseHTTPRequestHandler):
             elif parsed.path == "/pc/status":
                 self.send_json(get_pc_status())
             elif parsed.path == "/default-fairy":
+                default_fairy = _bundled_asset("default_fairy.png")
                 try:
-                    with open("default_fairy.png", "rb") as f:
+                    with open(default_fairy, "rb") as f:
                         self.send_response(200)
                         self.send_header("Content-Type", "image/png")
-                        self.send_header("Content-Length", str(Path("default_fairy.png").stat().st_size))
+                        self.send_header("Content-Length", str(default_fairy.stat().st_size))
                         self.end_headers()
                         self.wfile.write(f.read())
                 except Exception:
                     self.send_json({"error": "not found"}, status=404)
             elif parsed.path == "/avatar":
-                from pathlib import Path
-                avatar_path = None
-                for ext in ["png", "jpg", "jpeg", "gif"]:
-                    p = Path(f"avatar.{ext}")
-                    if p.exists():
-                        avatar_path = p
-                        break
+                avatar_path = _find_avatar()
                 if avatar_path:
                     self.send_response(200)
                     self.send_header("Content-Type", f"image/{avatar_path.suffix[1:]}")
@@ -1426,13 +1439,11 @@ if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
                 )
                 self.send_json({"response": response, "token_governor": assessment})
             elif parsed.path == "/revert-avatar":
-                from pathlib import Path
-                for ext in ["png", "jpg", "jpeg", "gif"]:
-                    Path(f"avatar.{ext}").unlink(missing_ok=True)
+                for ext in _ASSET_EXTS:
+                    _avatar_path(ext).unlink(missing_ok=True)
                 self.send_json({"status": "success"})
             elif parsed.path == "/upload-avatar":
                 import base64
-                from pathlib import Path
                 import io
                 length = int(self.headers.get("Content-Length", "0"))
                 if length > 5 * 1024 * 1024:
@@ -1461,9 +1472,9 @@ if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
                     if ext not in ["png", "jpg", "jpeg", "gif"]:
                         ext = "png"
 
-                for old_ext in ["png", "jpg", "jpeg", "gif"]:
-                    Path(f"avatar.{old_ext}").unlink(missing_ok=True)
-                with open(f"avatar.{ext}", "wb") as f:
+                for old_ext in _ASSET_EXTS:
+                    _avatar_path(old_ext).unlink(missing_ok=True)
+                with open(_avatar_path(ext), "wb") as f:
                     f.write(raw_bytes)
                 self.send_json({"status": "success"})
             else:

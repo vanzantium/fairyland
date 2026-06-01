@@ -10,12 +10,8 @@ Run standalone:  python pip_pc_tracker.py
 Or import and call start() in a background thread from pip_fairy_window.py.
 """
 
-import ctypes
-import ctypes.wintypes as wt
 import datetime
 import json
-import os
-import sys
 import threading
 import time
 import urllib.request
@@ -23,6 +19,19 @@ import urllib.error
 from pathlib import Path
 
 from . import pip_platform
+
+# Windows-only modules are imported lazily and guarded so this module is safe
+# to import on macOS, Linux, and Android/Termux (ctypes.wintypes has raised on
+# import under some non-Windows Python builds).
+ctypes = None
+wt = None
+if pip_platform.is_windows():
+    try:
+        import ctypes
+        import ctypes.wintypes as wt
+    except Exception:
+        ctypes = None
+        wt = None
 from . import pip_sentinel
 
 # ── config ────────────────────────────────────────────────────────────────────
@@ -39,7 +48,7 @@ PROCESS_VM_READ           = 0x0010
 
 def _get_foreground_app() -> str:
     """Return the stem of the foreground process exe, or '' on failure."""
-    if not pip_platform.is_windows():
+    if not pip_platform.is_windows() or ctypes is None or wt is None:
         return ""
 
     try:

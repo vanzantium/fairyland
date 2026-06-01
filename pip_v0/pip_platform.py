@@ -53,6 +53,8 @@ def feature_status() -> dict[str, Any]:
             "blender_recipes": True,
             "hardware_scan": True,
             "installed_app_scan": True,
+            "local_inference": True,       # OpenAI-compatible: any OS with a local server
+            "security_sentinel": True,     # behavioral fingerprint, all platforms
             "pc_foreground_tracker": is_windows(),
             "global_hotkey": is_windows(),
             "native_toast": is_windows(),
@@ -60,8 +62,9 @@ def feature_status() -> dict[str, Any]:
             "macro_recording": is_windows(),
         },
         "notes": [
-            "Windows has the fullest body layer today.",
-            "macOS/Linux should run Pip's brain, dashboard, drafts, token guard, and recipes.",
-            "Foreground app tracking and global hotkeys are Windows-only until platform-specific adapters are added.",
+            "Pip's brain, dashboard, local inference, sentinel, token guard, and recipes run on Windows, macOS, Linux, and Android/Termux.",
+            "Local inference is backend-agnostic (llama.cpp, LM Studio, Jan, Ollama) over an OpenAI-compatible /v1 API.",
+            "On Android, install_termux.sh runs the whole brain on-device, offline.",
+            "Foreground app tracking, global hotkeys, and native toasts are Windows-only until per-OS adapters are added; everything else degrades gracefully.",
         ],
     }

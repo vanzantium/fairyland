@@ -60,6 +60,8 @@ def get_cpu_name() -> str:
             pass
         return platform.processor() or "Unknown CPU"
 
+    if not pip_platform.is_windows():
+        return platform.processor() or "Unknown CPU"
     try:
         cpu_info = subprocess.check_output(
             "wmic cpu get Name",
@@ -94,6 +96,8 @@ def get_gpu_info() -> str:
             pass
         return "Unknown GPU"
 
+    if not pip_platform.is_windows():
+        return "Unknown GPU"
     try:
         gpu_info = subprocess.check_output(
             "wmic path win32_VideoController get name,AdapterRAM",

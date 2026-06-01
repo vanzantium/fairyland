@@ -12,6 +12,8 @@ def _app_entry(name: str, publisher: str = "", enabled: bool = False) -> dict:
 
 
 def _windows_apps() -> list[dict]:
+    if not pip_platform.is_windows():
+        return []
     script = """
     $apps = Get-ItemProperty HKLM:\\Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | 
         Select-Object DisplayName, Publisher | 
