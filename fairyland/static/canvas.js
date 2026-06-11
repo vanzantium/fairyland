@@ -17,6 +17,8 @@
   const pipOverlay = document.getElementById("pip-overlay");
   const leaveBtn = document.getElementById("leave");
   const eatenEl = document.getElementById("eaten");
+  const musicBtn = document.getElementById("music");
+  const player = document.getElementById("player");
 
   let sessionId = null;
   let marks = [];           // telemetry batch (rhythm only — not the drawing)
@@ -146,10 +148,13 @@
     pipOverlay.classList.remove("hidden");
     pipOverlay.classList.add("active");
     if (navigator.vibrate) navigator.vibrate(0); // cancel any buzz
+    const wasPlaying = !player.paused && !player.ended && player.src;
+    if (wasPlaying) player.pause(); // silence is the strongest signal
     setTimeout(() => {
       pipOverlay.classList.remove("active");
       pipOverlay.classList.add("hidden");
       pipActive = false;
+      if (wasPlaying && musicState === "playing") player.play().catch(() => {});
     }, 3000);
   }
 
@@ -198,6 +203,7 @@
   async function eatTheWeb() {
     if (ending) return;
     ending = true;
+    stopMusic();
 
     // strokes are consumed: progressive fade to black
     let alpha = 0;
@@ -240,6 +246,103 @@
   }
 
   leaveBtn.addEventListener("click", eatTheWeb);
+
+  // -- music: the spiral dealer ----------------------------------------------
+  //
+  // The household's own files, played through the Proper Shuffle:
+  // three tracks, enforced silence, one anchor word, then the music
+  // ends. Tapping ♪ again while playing stops it early.
+
+  let musicState = "idle"; // idle | playing | silence | done-for-session
+  const SILENCE_MS = 15000;
+
+  async function startMusic() {
+    const sid = await ensureSession();
+    const listRes = await fetch("/music/list");
+    const { tracks } = await listRes.json();
+
+    if (!tracks.length) {
+      // nothing in the folder: the note dims, wordlessly
+      musicBtn.classList.add("empty");
+      setTimeout(() => musicBtn.classList.remove("empty"), 2500);
+      return;
+    }
+
+    await fetch("/shuffle/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sid, tracks }),
+    });
+
+    musicState = "playing";
+    musicBtn.classList.add("playing");
+    player.volume = 0.6;
+    advanceMusic();
+  }
+
+  async function advanceMusic() {
+    if (musicState !== "playing") return;
+    let data;
+    try {
+      const sid = await ensureSession();
+      const res = await fetch("/shuffle/next", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sid }),
+      });
+      data = await res.json();
+    } catch (err) {
+      stopMusic();
+      return;
+    }
+
+    if (data.track) {
+      player.src = "/music/file/" + encodeURIComponent(data.track.id);
+      player.play().catch(() => stopMusic());
+      return; // 'ended' listener advances
+    }
+
+    if (data.silence) {
+      // enforced silence — the dealer rests
+      player.pause();
+      player.removeAttribute("src");
+      musicState = "silence";
+      setTimeout(() => {
+        if (data.anchor_cue) {
+          // after silence -> material anchor. one word, outward.
+          const verbs = ["Make", "Sit", "Read", "Walk", "Find"];
+          showAnchor(verbs[Math.floor(performance.now() / 1000) % verbs.length]);
+        }
+        // after the anchor -> exit. one more call returns the exit cue.
+        musicState = "playing";
+        advanceMusic();
+      }, SILENCE_MS);
+      return;
+    }
+
+    // exit cue (or empty playlist): the music is over for this session
+    stopMusic();
+  }
+
+  function stopMusic() {
+    player.pause();
+    player.removeAttribute("src");
+    musicState = "idle";
+    musicBtn.classList.remove("playing");
+  }
+
+  player.addEventListener("ended", () => {
+    if (musicState === "playing") advanceMusic();
+  });
+  player.addEventListener("error", () => {
+    if (musicState === "playing") advanceMusic(); // skip unreadable files
+  });
+
+  musicBtn.addEventListener("click", () => {
+    if (ending) return;
+    if (musicState === "idle") startMusic();
+    else stopMusic();
+  });
 
   // installable: register the service worker (root scope)
   if ("serviceWorker" in navigator) {

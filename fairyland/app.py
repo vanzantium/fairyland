@@ -12,7 +12,7 @@ import os
 import uuid
 from pathlib import Path
 
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, send_from_directory
 
 from fairyland.beacon.mesh import BeaconState, broadcast, handshake
 from fairyland.breath.protocol import BreathProtocol
@@ -45,6 +45,25 @@ _sessions: dict[str, dict] = {}
 TATTOO_DIR = os.environ.get("FAIRYLAND_TATTOO_DIR", None)
 PIP_DATA_DIR = os.environ.get("FAIRYLAND_PIP_DIR", None)
 DATA_DIR = Path(__file__).parent / "data"
+
+# the user's own music, dropped into a local folder. nothing is fetched,
+# nothing is recommended — the library is whatever the household put there.
+AUDIO_EXTENSIONS = {".mp3", ".ogg", ".m4a", ".wav", ".flac", ".webm", ".opus", ".aac"}
+
+
+def _music_dir() -> Path:
+    return Path(os.environ.get("FAIRYLAND_MUSIC_DIR")
+                or Path(__file__).parent / "music")
+
+
+def _scan_music() -> list[Path]:
+    base = _music_dir()
+    if not base.is_dir():
+        return []
+    return sorted(
+        p for p in base.iterdir()
+        if p.is_file() and p.suffix.lower() in AUDIO_EXTENSIONS
+    )
 
 
 def _get_or_create_session(sid: str, pip_seed: bool = True) -> dict:
@@ -348,6 +367,27 @@ def handshake_route():
     remote = BeaconState(**body.get("remote", {}))
     decision = handshake(local, remote)
     return jsonify({"decision": decision.name})
+
+
+@app.route("/music/list", methods=["GET"])
+def music_list():
+    """List the household's dropped-in music. Filenames only — no metadata
+    scraping, no durations, no analysis."""
+    tracks = [
+        {"id": p.name, "title": p.stem}
+        for p in _scan_music()
+    ]
+    return jsonify({"tracks": tracks})
+
+
+@app.route("/music/file/<path:track_id>")
+def music_file(track_id: str):
+    """Serve one dropped-in track. The id must match a scanned filename
+    exactly — no traversal, no guessing."""
+    valid = {p.name for p in _scan_music()}
+    if track_id not in valid:
+        return jsonify({"error": "unknown track"}), 404
+    return send_from_directory(_music_dir(), track_id)
 
 
 @app.route("/shuffle/start", methods=["POST"])

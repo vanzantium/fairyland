@@ -11,3 +11,7 @@ tattoos/
 instance/
 *.sqlite
 *.db
+
+# the household's own music — never committed
+fairyland/music/*
+!fairyland/music/README.md

@@ -160,6 +160,7 @@ class SpiralEngine:
         self._pressure_baseline = pressure_baseline
         self._last_signals: Optional[TextSignals] = None
         self._last_anchor_tick = 0
+        self._activity_since_anchor = 0
 
     # -- public API ---------------------------------------------------------
 
@@ -267,14 +268,19 @@ class SpiralEngine:
             self.state.context.pip.active = False
             self.state.context.pip.hold_reason = None
 
-        # anchor verb: only when calm or open, and only occasionally
+        # anchor verb: only when calm or open, only occasionally, and only
+        # when someone has actually been here — an abandoned canvas goes
+        # quiet rather than offering words to an empty room
+        self._activity_since_anchor += signals.sentence_count
         anchor = None
         if (self.state.breath in (BreathState.CALM, BreathState.FLOW)
                 and self.state.oscillator.mode != Mode.SHED
+                and self._activity_since_anchor > 0
                 and self.state.tick - self._last_anchor_tick >= 8):
             anchor = _ANCHORS[self._ritual_idx % len(_ANCHORS)]
             self._ritual_idx += 1
             self._last_anchor_tick = self.state.tick
+            self._activity_since_anchor = 0
 
         return SpiralOutput(
             text="",

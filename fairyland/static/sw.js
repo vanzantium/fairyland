@@ -1,6 +1,6 @@
 // Fairyland Service Worker — offline-first shell caching
 
-const CACHE_NAME = "fairyland-v2";
+const CACHE_NAME = "fairyland-v3";
 const SHELL_ASSETS = [
   "/",
   "/canvas",
@@ -37,7 +37,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // API calls always go to network
+  // API calls and the music library always go to network — never cached
   if (
     url.pathname.startsWith("/step") ||
     url.pathname.startsWith("/rhythm") ||
@@ -50,14 +50,35 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/drift") ||
     url.pathname.startsWith("/handshake") ||
     url.pathname.startsWith("/plant") ||
+    url.pathname.startsWith("/music") ||
     url.pathname.startsWith("/bridge")
   ) {
     event.respondWith(fetch(event.request));
     return;
   }
 
-  // Shell assets: cache-first
+  if (event.request.method !== "GET") {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Static assets: cache-first (filenames change rarely; cache bust via version)
+  if (url.pathname.startsWith("/static/")) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => cached || fetch(event.request))
+    );
+    return;
+  }
+
+  // Pages: network-first so updates land immediately; cached shell only
+  // when offline. (Cache-first pages serve stale HTML forever.)
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return res;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

@@ -151,6 +151,31 @@ body.edge #breathe-veil {
   cursor: pointer;
 }
 
+/* music — the spiral dealer, quiet in the corner */
+#music {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  color: var(--dim);
+  font-size: 18px;
+  opacity: 0.4;
+  z-index: 30;
+  cursor: pointer;
+  transition: opacity 1.2s ease-in-out, color 1.2s ease-in-out;
+}
+#music.playing {
+  color: var(--flow-pulse);
+  opacity: 0.8;
+}
+#music.empty {
+  opacity: 0.08;
+}
+#player { display: none; }
+
 /* the web is eaten */
 #eaten {
   position: fixed;

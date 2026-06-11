@@ -94,13 +94,25 @@ class TestRhythmStep:
         engine = SpiralEngine()
         anchors = []
         for batch in range(20):
-            out = engine.rhythm_step(extract_rhythm_signals([]))
+            # gentle presence: one calm mark per batch, then the engine
+            # settles — anchors should surface, but only occasionally
+            out = engine.rhythm_step(extract_rhythm_signals(
+                [{"t": batch * 2500, "x": 0.3, "y": 0.4, "len": 0.2, "dur": 600}]
+            ))
             if out.anchor:
                 anchors.append((batch, out.anchor))
-        assert len(anchors) >= 1          # calm sessions do surface a verb
+        assert len(anchors) >= 1          # calm presence does surface a verb
         assert len(anchors) <= 3          # but only occasionally
         for (_, word) in anchors:
             assert word in ["Make", "Sit", "Read", "Walk", "Find"]
+
+    def test_abandoned_canvas_goes_quiet(self):
+        """No marks at all -> no anchor, ever. The system does not perform
+        to an empty room."""
+        engine = SpiralEngine()
+        for _ in range(30):
+            out = engine.rhythm_step(extract_rhythm_signals([]))
+            assert out.anchor is None
 
 
 @pytest.fixture
