@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Fairyland — Weather</title>
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="stylesheet" href="/static/peek.css">
+</head>
+<body>
+  <!-- parent peek: three words. never the marks. -->
+  <main id="sky">
+    <div class="row"><span class="label">rhythm</span><span id="w-rhythm" class="word">—</span></div>
+    <div class="row"><span class="label">tension</span><span id="w-tension" class="word">—</span></div>
+    <div class="row"><span class="label">flow</span><span id="w-flow" class="word">—</span></div>
+  </main>
+
+  <div id="quiet" class="hidden"><span>quiet</span></div>
+
+  <!-- if meaning is extracted, pip closes the page -->
+  <div id="pip-overlay" class="hidden"><span class="pip-dot">(.)</span></div>
+
+  <script src="/static/peek.js"></script>
+</body>
+</html>

@@ -89,6 +89,13 @@ def canvas():
     return render_template("canvas.html")
 
 
+@app.route("/sw.js")
+def service_worker():
+    """Serve the service worker from the root so its scope covers all pages
+    (a worker registered from /static/ could only control /static/)."""
+    return app.send_static_file("sw.js")
+
+
 @app.route("/health")
 def health():
     return jsonify({"status": "alive"})
@@ -244,6 +251,33 @@ def weather():
         return jsonify({"error": "unknown session"}), 404
     engine: SpiralEngine = _sessions[sid]["engine"]
     return jsonify({"weather": engine.get_weather()})
+
+
+@app.route("/peek")
+def peek():
+    """Parent Peek — weather only. Never the marks."""
+    return render_template("peek.html")
+
+
+@app.route("/weather/current", methods=["GET"])
+def weather_current():
+    """Weather of the most recent kid session. No ids, no content, no history.
+
+    Parents never see the child's marks — only three words of system
+    weather. When no instrument is open, the sky is simply quiet.
+    """
+    latest = None
+    latest_start = -1.0
+    for session in _sessions.values():
+        engine: SpiralEngine = session["engine"]
+        if engine.state.context.T.mode != SessionMode.KID:
+            continue
+        if engine.state.session_start > latest_start:
+            latest_start = engine.state.session_start
+            latest = engine
+    if latest is None:
+        return jsonify({"present": False, "weather": None})
+    return jsonify({"present": True, "weather": latest.get_weather()})
 
 
 @app.route("/drift", methods=["GET"])

@@ -1,0 +1,94 @@
+/* Parent Peek — system weather. Three words. Never the marks. */
+
+:root {
+  --bg: #0a0a0a;
+  --fg: #d4d0c8;
+  --dim: #555;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#sky {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.2rem;
+  transition: opacity 1.5s ease-in-out;
+}
+
+#sky.faded { opacity: 0.15; }
+
+.row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.label {
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: var(--dim);
+}
+
+.word {
+  font-size: 24px;
+  letter-spacing: 0.25em;
+  color: var(--fg);
+  opacity: 0.85;
+  transition: opacity 2s ease-in-out;
+}
+
+/* when no instrument is open, the sky is simply quiet */
+#quiet {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 2s ease-in-out;
+}
+#quiet.active { opacity: 1; }
+#quiet.hidden { opacity: 0; }
+#quiet span {
+  color: var(--dim);
+  font-size: 14px;
+  letter-spacing: 0.4em;
+}
+
+/* the close: if meaning is extracted, pip ends the peek */
+#pip-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 4, 4, 0.96);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s ease-in-out;
+}
+#pip-overlay.active { opacity: 1; pointer-events: all; }
+#pip-overlay.hidden { opacity: 0; pointer-events: none; }
+.pip-dot {
+  color: var(--dim);
+  font-size: 20px;
+  letter-spacing: 0.2em;
+}

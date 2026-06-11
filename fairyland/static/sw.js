@@ -1,11 +1,19 @@
 // Fairyland Service Worker — offline-first shell caching
 
-const CACHE_NAME = "fairyland-v1";
+const CACHE_NAME = "fairyland-v2";
 const SHELL_ASSETS = [
   "/",
+  "/canvas",
+  "/peek",
   "/static/style.css",
   "/static/app.js",
+  "/static/canvas.css",
+  "/static/canvas.js",
+  "/static/peek.css",
+  "/static/peek.js",
   "/static/manifest.json",
+  "/static/icon-192.png",
+  "/static/icon-512.png",
 ];
 
 self.addEventListener("install", (event) => {
@@ -32,6 +40,7 @@ self.addEventListener("fetch", (event) => {
   // API calls always go to network
   if (
     url.pathname.startsWith("/step") ||
+    url.pathname.startsWith("/rhythm") ||
     url.pathname.startsWith("/session") ||
     url.pathname.startsWith("/weather") ||
     url.pathname.startsWith("/burn") ||

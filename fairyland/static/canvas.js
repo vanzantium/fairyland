@@ -241,6 +241,11 @@
 
   leaveBtn.addEventListener("click", eatTheWeb);
 
+  // installable: register the service worker (root scope)
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").catch(() => { /* paper still works */ });
+  }
+
   // burn on real exit too — sendBeacon survives page close
   window.addEventListener("pagehide", () => {
     if (sessionId && navigator.sendBeacon) {
