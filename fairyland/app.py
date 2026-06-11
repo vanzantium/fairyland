@@ -28,6 +28,7 @@ from fairyland.bridge import (
     save_tiered_memory,
     seed_kernel_from_pip,
 )
+from fairyland.engine.listening import ListeningBuffer, settle as settle_listening
 from fairyland.engine.rhythm import extract_rhythm_signals
 from fairyland.engine.shuffle import ProperShuffle, Track
 from fairyland.engine.spiral import SpiralEngine
@@ -75,6 +76,7 @@ def _get_or_create_session(sid: str, pip_seed: bool = True) -> dict:
             "breath": BreathProtocol(),
             "memory": memory,
             "shuffle": None,
+            "listening": ListeningBuffer(),
         }
         if pip_seed and PIP_DATA_DIR:
             _seed_from_pip(engine, PIP_DATA_DIR)
@@ -367,6 +369,51 @@ def handshake_route():
     remote = BeaconState(**body.get("remote", {}))
     decision = handshake(local, remote)
     return jsonify({"decision": decision.name})
+
+
+@app.route("/listen", methods=["POST"])
+def listen():
+    """
+    Feel the music — accumulate impression packets during playback.
+
+    Body: {"session_id": "...", "packets": [{"t": ms, "low": 0..1,
+            "mid": 0..1, "high": 0..1, "amp": 0..1, "onset": bool}, ...]}
+
+    Nothing here touches the kernel or memory. The organism feels the
+    music but does not process it. Processing happens at /listen/settle —
+    during the dealer's enforced silence.
+    """
+    body = request.get_json(force=True)
+    sid = body.get("session_id", "")
+    if not sid:
+        return jsonify({"error": "session_id required"}), 400
+    session = _get_or_create_session(sid)
+    buf: ListeningBuffer = session.setdefault("listening", ListeningBuffer())
+    landed = buf.feel(body.get("packets", []))
+    return jsonify({"felt": landed})
+
+
+@app.route("/listen/settle", methods=["POST"])
+def listen_settle():
+    """
+    The music stopped. Let meaning settle.
+
+    One pass: the kernel wanders through the thermal residue and shifts.
+    The buffer clears — the impression has been processed. Memory of the
+    song is how the kernel changed, not the notes.
+    """
+    body = request.get_json(force=True)
+    sid = body.get("session_id", "")
+    if sid not in _sessions:
+        return jsonify({"error": "unknown session"}), 404
+    session = _sessions[sid]
+    engine: SpiralEngine = session["engine"]
+    buf: ListeningBuffer = session.setdefault("listening", ListeningBuffer())
+
+    report = settle_listening(engine.state.kernel, buf.residue())
+    buf.clear()
+    report["weather"] = engine.get_weather()
+    return jsonify(report)
 
 
 @app.route("/music/list", methods=["GET"])

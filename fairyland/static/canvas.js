@@ -256,6 +256,90 @@
   let musicState = "idle"; // idle | playing | silence | done-for-session
   const SILENCE_MS = 15000;
 
+  // -- the ear: feel the music while it plays, settle after -------------------
+  //
+  // Web Audio taps the playing track: band energies + onsets sampled at
+  // ~15 Hz, batched to /listen. Nothing is judged in real time — the
+  // impressions accumulate, and meaning settles server-side during the
+  // dealer's enforced silence. If Web Audio fails, the music still plays
+  // (the organism is deaf, not mute).
+
+  let audioCtx = null;
+  let analyser = null;
+  let earTimer = null;
+  let earFlush = null;
+  let packets = [];
+  let prevEnergy = 0;
+
+  function openEar() {
+    if (analyser) return true;
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioCtx.createMediaElementSource(player);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 512;
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      return true;
+    } catch (err) {
+      analyser = null;
+      return false;
+    }
+  }
+
+  function startListening() {
+    if (!openEar()) return;
+    if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+    const bins = new Uint8Array(analyser.frequencyBinCount);
+    const nyquist = audioCtx.sampleRate / 2;
+    const binHz = nyquist / analyser.frequencyBinCount;
+    const band = (lo, hi) => {
+      let sum = 0, n = 0;
+      for (let i = Math.floor(lo / binHz); i < Math.min(Math.ceil(hi / binHz), bins.length); i++) {
+        sum += bins[i]; n++;
+      }
+      return n ? (sum / n) / 255 : 0;
+    };
+    earTimer = setInterval(() => {
+      if (musicState !== "playing" || player.paused) return;
+      analyser.getByteFrequencyData(bins);
+      const low = band(20, 250), mid = band(250, 2000), high = band(4000, 14000);
+      const amp = (low + mid + high) / 3;
+      const onset = amp - prevEnergy > 0.07; // energy flux transient
+      prevEnergy = amp;
+      packets.push({ t: performance.now(), low: +low.toFixed(3), mid: +mid.toFixed(3),
+                     high: +high.toFixed(3), amp: +amp.toFixed(3), onset });
+    }, 66);
+    earFlush = setInterval(flushPackets, 2500);
+  }
+
+  async function flushPackets() {
+    if (!packets.length || !sessionId) return;
+    const batch = packets;
+    packets = [];
+    try {
+      await fetch("/listen", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, packets: batch }),
+      });
+    } catch (err) { /* impressions fade; the music keeps playing */ }
+  }
+
+  async function settleListening() {
+    clearInterval(earTimer); earTimer = null;
+    clearInterval(earFlush); earFlush = null;
+    await flushPackets();
+    if (!sessionId) return;
+    try {
+      await fetch("/listen/settle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId }),
+      });
+    } catch (err) { /* the residue simply fades */ }
+  }
+
   async function startMusic() {
     const sid = await ensureSession();
     const listRes = await fetch("/music/list");
@@ -277,6 +361,7 @@
     musicState = "playing";
     musicBtn.classList.add("playing");
     player.volume = 0.6;
+    startListening();
     advanceMusic();
   }
 
@@ -303,10 +388,11 @@
     }
 
     if (data.silence) {
-      // enforced silence — the dealer rests
+      // enforced silence — the dealer rests, and meaning settles
       player.pause();
       player.removeAttribute("src");
       musicState = "silence";
+      settleListening(); // the silence is the settle window
       setTimeout(() => {
         if (data.anchor_cue) {
           // after silence -> material anchor. one word, outward.
@@ -327,8 +413,10 @@
   function stopMusic() {
     player.pause();
     player.removeAttribute("src");
+    const wasListening = !!earTimer;
     musicState = "idle";
     musicBtn.classList.remove("playing");
+    if (wasListening) settleListening(); // stopped early: meaning still settles
   }
 
   player.addEventListener("ended", () => {
