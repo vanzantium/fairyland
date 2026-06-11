@@ -28,6 +28,7 @@ from fairyland.bridge import (
     save_tiered_memory,
     seed_kernel_from_pip,
 )
+from fairyland.engine.rhythm import extract_rhythm_signals
 from fairyland.engine.shuffle import ProperShuffle, Track
 from fairyland.engine.spiral import SpiralEngine
 from fairyland.engine.state import RuntimeState, SessionMode
@@ -80,6 +81,12 @@ def _seed_from_pip(engine: SpiralEngine, pip_dir: str) -> None:
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/canvas")
+def canvas():
+    """Kids mode — the blank canvas instrument. No words, no scores."""
+    return render_template("canvas.html")
 
 
 @app.route("/health")
@@ -174,6 +181,59 @@ def step():
         response["signals"] = output.signals
 
     return jsonify(response)
+
+
+@app.route("/rhythm", methods=["POST"])
+def rhythm():
+    """
+    Canvas telemetry step — the kids-mode counterpart of /step.
+
+    Body: {"session_id": "...", "marks": [{"t": ms, "x": 0..1, "y": 0..1,
+            "len": 0..2, "dur": ms}, ...]}
+
+    An empty marks list is a valid heartbeat: stillness lets pressure settle.
+    No content is read or stored — only rhythm. The friction log gets a
+    pressure number with an empty summary, and the whole session burns on exit.
+    """
+    body = request.get_json(force=True)
+    sid = body.get("session_id", "")
+    if not sid:
+        return jsonify({"error": "session_id required"}), 400
+
+    session = _get_or_create_session(sid)
+    engine: SpiralEngine = session["engine"]
+    breath_proto: BreathProtocol = session["breath"]
+    memory: MemoryEngine = session["memory"]
+
+    signals = extract_rhythm_signals(body.get("marks", []))
+    output = engine.rhythm_step(signals)
+    pulse = breath_proto.force_pulse(engine.state.breath)
+
+    # content-free friction logging: pressure only, no summary text
+    k = engine.state.kernel
+    hesitation = "STRONG" if output.pip_active else ("MILD" if k.pressure > 0.5 else "NONE")
+    memory.log(
+        pressure=k.pressure,
+        hesitation=hesitation,
+        summary="",
+        tick=engine.state.tick,
+        tone=None,
+        rhythm=signals.rhythm,
+    )
+
+    return jsonify({
+        "breath": {
+            "state": pulse.state.value,
+            "icon": pulse.icon,
+            "haptic": pulse.haptic_pattern,
+            "interval": pulse.interval_seconds,
+        },
+        "pip_active": output.pip_active,
+        "anchor": output.anchor,
+        "weather": output.weather,
+        "oscillator_mode": output.oscillator_mode,
+        "snapshot": engine.state.snapshot(),
+    })
 
 
 @app.route("/weather", methods=["GET"])

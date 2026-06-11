@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Fairyland</title>
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="stylesheet" href="/static/canvas.css">
+</head>
+<body>
+  <!-- the instrument: a blank textured canvas. touch = mark. -->
+  <canvas id="paper"></canvas>
+
+  <!-- breath ring, bottom corner. the only persistent UI. -->
+  <div id="breath-ring" class="calm"><span id="breath-icon">○</span></div>
+
+  <!-- anchor verb: one word, fades in when calm, dissolves if ignored -->
+  <div id="anchor" class="hidden"></div>
+
+  <!-- pip silence interrupt: 3 seconds, nothing else -->
+  <div id="pip-overlay" class="hidden"><span class="pip-dot">(.)</span></div>
+
+  <!-- edge state: the screen slows and breathes -->
+  <div id="breathe-veil"></div>
+
+  <!-- end of session: the web is eaten -->
+  <button id="leave" aria-label="leave">×</button>
+  <div id="eaten" class="hidden"><span></span></div>
+
+  <script src="/static/canvas.js"></script>
+</body>
+</html>

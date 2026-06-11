@@ -31,6 +31,7 @@ class TextSignals:
     has_question: bool
     has_exclamation: bool
     silence_ratio: float   # fraction of very short sentences (< 3 words)
+    burst_score: float = 0.0  # input intensity (touch cadence); 0 for text
 
 
 # ---------------------------------------------------------------------------

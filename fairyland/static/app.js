@@ -178,6 +178,11 @@
     modeSelect.querySelectorAll("button").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const mode = btn.dataset.mode;
+        if (mode === "KID") {
+          // kids mode is the canvas instrument, not chat
+          window.location.href = "/canvas";
+          return;
+        }
         await createSession(mode);
         state = "handshake";
         modeSelect.classList.add("hidden");

@@ -91,6 +91,10 @@ def _compute_pressure(text: str, state: RuntimeState, signals: TextSignals,
         "escalating": 0.12, "flat": 0.0, "settling": -0.08
     }.get(signals.emotional_direction, 0.0)
 
+    # burst: raw input intensity. Zero for text; for touch it carries the
+    # cadence that text would otherwise express through length/exclamations.
+    burst_factor = signals.burst_score * 0.2
+
     # coherence-pressure coupling: low coherence amplifies pressure
     coherence_coupling = (1.0 - k.coherence) * 0.1
 
@@ -99,7 +103,7 @@ def _compute_pressure(text: str, state: RuntimeState, signals: TextSignals,
 
     raw = (momentum + length_factor + exclamation_factor + question_factor +
            rhythm_factor + repetition_factor + trajectory_factor +
-           coherence_coupling + baseline)
+           burst_factor + coherence_coupling + baseline)
 
     # apply oscillator mode damping
     raw *= osc_effect.pressure_damping
@@ -155,6 +159,7 @@ class SpiralEngine:
         self._drift = DriftTracker()
         self._pressure_baseline = pressure_baseline
         self._last_signals: Optional[TextSignals] = None
+        self._last_anchor_tick = 0
 
     # -- public API ---------------------------------------------------------
 
@@ -217,6 +222,69 @@ class SpiralEngine:
         }
 
         return output
+
+    def rhythm_step(self, signals: TextSignals) -> SpiralOutput:
+        """Process one canvas telemetry batch. No words in, no words out.
+
+        Kids-mode contract (v14): the system mirrors energy only. The kernel,
+        breath, oscillator and drift all update from rhythm, but the output
+        carries no text, no labels, no scores — just breath state, the Pip
+        interrupt when overdriven, an anchor verb when calm, and weather.
+        """
+        self.state.tick += 1
+        self._last_signals = signals
+
+        # advance oscillator
+        self.state.oscillator = advance_oscillator(
+            self.state.oscillator, self.state.kernel, self.state.tick
+        )
+
+        # kernel and breath update from rhythm alone (empty text contributes
+        # nothing; pressure moves on rhythm/repetition/trajectory factors)
+        self._update_kernel("", signals)
+        self._update_breath()
+
+        # echo drift still applies to touch loops; parasocial/narrowing
+        # need words and simply stay quiet
+        self._drift.update(
+            "",
+            repetition_score=signals.repetition_score,
+            tick=self.state.tick,
+            tone=None,
+        )
+
+        # overdrive — Pip silence interrupt
+        if self.state.breath == BreathState.OVERDRIVE:
+            out = self._pip_interrupt()
+            out.text = ""
+            out.oscillator_mode = self.state.oscillator.mode.name
+            out.weather = self.get_weather()
+            return out
+
+        # the silence has passed — release the hold (the text path does this
+        # in _do_hold; the canvas has no next utterance to do it for us)
+        if self.state.context.pip.active:
+            self.state.context.pip.active = False
+            self.state.context.pip.hold_reason = None
+
+        # anchor verb: only when calm or open, and only occasionally
+        anchor = None
+        if (self.state.breath in (BreathState.CALM, BreathState.FLOW)
+                and self.state.oscillator.mode != Mode.SHED
+                and self.state.tick - self._last_anchor_tick >= 8):
+            anchor = _ANCHORS[self._ritual_idx % len(_ANCHORS)]
+            self._ritual_idx += 1
+            self._last_anchor_tick = self.state.tick
+
+        return SpiralOutput(
+            text="",
+            state_name=self.state.spiral.value,
+            breath=self.state.breath.value,
+            anchor=anchor,
+            pip_active=False,
+            weather=self.get_weather(),
+            oscillator_mode=self.state.oscillator.mode.name,
+        )
 
     def set_mode(self, mode: SessionMode):
         self.state.context.T.mode = mode

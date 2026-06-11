@@ -1,0 +1,173 @@
+/* Fairyland canvas — the instrument. Paper, breath, silence. */
+
+:root {
+  --bg: #0a0a0a;
+  --paper: #11100e;
+  --grain: #1a1815;
+  --ink: #d4d0c8;
+  --dim: #555;
+  --calm-pulse: #4a6a4e;
+  --flow-pulse: #6a8a6e;
+  --edge-pulse: #a86a5a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  overflow: hidden;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: 'Courier New', monospace;
+}
+
+/* the paper */
+#paper {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255, 252, 240, 0.012), transparent 60%),
+    radial-gradient(ellipse at 70% 80%, rgba(255, 252, 240, 0.01), transparent 55%),
+    var(--paper);
+  cursor: crosshair;
+}
+
+/* breath ring — bottom corner, the only persistent presence */
+#breath-ring {
+  position: fixed;
+  bottom: 18px;
+  left: 18px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--dim);
+  pointer-events: none;
+  transition: border-color 1.5s ease-in-out, opacity 1.5s ease-in-out;
+}
+
+#breath-ring.calm {
+  border: 2px solid var(--calm-pulse);
+  animation: breathe 6.5s infinite ease-in-out;
+}
+#breath-ring.flow {
+  border: 2px solid var(--flow-pulse);
+  animation: breathe 4.5s infinite ease-in-out;
+}
+#breath-ring.edge {
+  border: 2px solid var(--edge-pulse);
+  animation: breathe 2.5s infinite ease-in-out;
+}
+#breath-ring.overdrive {
+  border: 2px solid transparent;
+  animation: none;
+  opacity: 0.25;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1.0); opacity: 0.55; }
+  50%      { transform: scale(1.18); opacity: 0.95; }
+}
+
+/* anchor verb — one word, centered, dissolves */
+#anchor {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 26px;
+  letter-spacing: 0.35em;
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 3s ease-in-out;
+}
+#anchor.visible { opacity: 0.5; }
+#anchor.hidden { opacity: 0; }
+
+/* pip silence — full screen, three seconds, nothing else */
+#pip-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 4, 4, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s ease-in-out;
+}
+#pip-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+#pip-overlay.hidden { opacity: 0; pointer-events: none; }
+.pip-dot {
+  color: var(--dim);
+  font-size: 20px;
+  letter-spacing: 0.2em;
+}
+
+/* edge veil — the screen slows and breathes */
+#breathe-veil {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 2.5s ease-in-out;
+  z-index: 20;
+}
+body.edge #breathe-veil {
+  animation: veil 2.5s infinite ease-in-out;
+}
+@keyframes veil {
+  0%, 100% { opacity: 0.0; }
+  50%      { opacity: 0.22; }
+}
+
+/* leave — small, quiet, top corner */
+#leave {
+  position: fixed;
+  top: 14px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  color: var(--dim);
+  font-size: 20px;
+  opacity: 0.4;
+  z-index: 30;
+  cursor: pointer;
+}
+
+/* the web is eaten */
+#eaten {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 2s ease-in-out;
+}
+#eaten.active { opacity: 1; pointer-events: all; }
+#eaten.hidden { opacity: 0; pointer-events: none; }
+#eaten span {
+  color: var(--dim);
+  font-size: 14px;
+  letter-spacing: 0.3em;
+}
